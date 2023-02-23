@@ -196,14 +196,22 @@ while the_game_is_running:
     else:
         adjust_bubbles_x = 0
         adjust_bubbles_y = 0
-        if bubbles_pos[0] < player_pos[0]:
-            adjust_bubbles_x += BUBBLES_SPEED // dt
-        if bubbles_pos[0] > player_pos[0]:
-            adjust_bubbles_x -= BUBBLES_SPEED // dt
-        if bubbles_pos[1] < player_pos[1]:
-            adjust_bubbles_y += BUBBLES_SPEED // dt
-        if bubbles_pos[1] > player_pos[1]:
-            adjust_bubbles_y -= BUBBLES_SPEED // dt
+        # if bubbles_pos[0] < player_pos[0] and :
+        #     adjust_bubbles_x += BUBBLES_SPEED // dt
+        # if bubbles_pos[0] > player_pos[0] :
+        #     adjust_bubbles_x -= BUBBLES_SPEED // dt
+        # if bubbles_pos[1] < player_pos[1] - pygame.Surface.get_height(player) + 1:
+        #     adjust_bubbles_y += BUBBLES_SPEED // dt
+        # if bubbles_pos[1] > player_pos[1] + pygame.Surface.get_height(player):
+        #     adjust_bubbles_y -= BUBBLES_SPEED // dt
+        if (bubbles_pos[0] != player_pos[0]) and (bubbles_pos[1] != player_pos[1]):
+            dely = player_pos[1] - bubbles_pos[1]
+            delx = player_pos[0] - bubbles_pos[0]
+            angle = math.tan(dely/delx)
+            adjust_bubbles_x = math.cos(angle)*BUBBLES_SPEED // dt
+            adjust_bubbles_y = math.sin(angle)*BUBBLES_SPEED // dt
+
+        
         
         if (adjust_bubbles_x != 0) and (adjust_bubbles_y != 0):
             bubbles_pos[0] += SPEED_CORRECTION * adjust_bubbles_x // 1
@@ -212,6 +220,15 @@ while the_game_is_running:
             bubbles_pos[0] += adjust_bubbles_x
             bubbles_pos[1] += adjust_bubbles_y
 
+
+        # if bubbles_pos[0] < player_pos[0] - pygame.Surface.get_width(player):
+        #     adjust_bubbles_x += BUBBLES_SPEED // dt
+        # if bubbles_pos[0] > player_pos[0] + pygame.Surface.get_width(player):
+        #     adjust_bubbles_x -= BUBBLES_SPEED // dt
+        # if bubbles_pos[1] < player_pos[1] - pygame.Surface.get_height(player) + 1:
+        #     adjust_bubbles_y += BUBBLES_SPEED // dt
+        # if bubbles_pos[1] > player_pos[1] + pygame.Surface.get_height(player):
+        #     adjust_bubbles_y -= BUBBLES_SPEED // dt
 
     # try and fix player_rect and bubbles_rect here
     if previous_player_pos == player_pos:
