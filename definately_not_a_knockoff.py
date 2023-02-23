@@ -112,8 +112,14 @@ while the_game_is_running:
             if pygame.Rect.colliderect(bubbles_rectangle, this_bullet):
                 # print("bubbles it hit")
                 remove_index = b
-                bubbles_pos[0] = WIDTH  * random.random()
-                bubbles_pos[1] = HEIGHT * random.random()
+                respawnX = WIDTH  * random.random()
+                respawnY = HEIGHT * random.random()
+                radius = 4*pygame.Surface.get_width(player)
+                while ((respawnX - player_pos[0])*(respawnX - player_pos[0]) + (respawnY - player_pos[1])*(respawnY - player_pos[1]) < radius ):
+                    respawnX = WIDTH  * random.random()
+                    respawnY = HEIGHT * random.random()
+                bubbles_pos[0] = respawnX
+                bubbles_pos[1] = respawnY
                 bubbles_hit_tick = total_num_of_ticks
                 times_bubbles_killed += 1
             if (remove_index != -1):
