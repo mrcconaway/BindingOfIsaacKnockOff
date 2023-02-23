@@ -114,7 +114,8 @@ while the_game_is_running:
                 remove_index = b
                 respawnX = WIDTH  * random.random()
                 respawnY = HEIGHT * random.random()
-                # this should work, might need to fine tune the radius 
+                # this should work, might need to fine tune the radius
+                # aight bubbles keeps spawning in me for an insta KO... DOES NOT WORK :(
                 radius = 4*pygame.Surface.get_width(player)
                 while ((respawnX - player_pos[0])*(respawnX - player_pos[0]) + (respawnY - player_pos[1])*(respawnY - player_pos[1]) < radius ):
                     respawnX = WIDTH  * random.random()
