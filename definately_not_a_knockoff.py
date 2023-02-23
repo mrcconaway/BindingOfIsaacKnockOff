@@ -115,9 +115,8 @@ while the_game_is_running:
                 respawnX = WIDTH  * random.random()
                 respawnY = HEIGHT * random.random()
                 # this should work, might need to fine tune the radius
-                # aight bubbles keeps spawning in me for an insta KO... DOES NOT WORK :(
                 radius = 4*pygame.Surface.get_width(player)
-                while ((respawnX - player_pos[0])*(respawnX - player_pos[0]) + (respawnY - player_pos[1])*(respawnY - player_pos[1]) < radius ):
+                while (math.sqrt ((respawnX - player_pos[0])**2 + (respawnY - player_pos[1])**2) < radius ):
                     respawnX = WIDTH  * random.random()
                     respawnY = HEIGHT * random.random()
                 bubbles_pos[0] = respawnX
