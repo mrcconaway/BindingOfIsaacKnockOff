@@ -107,13 +107,19 @@ while the_game_is_running:
 
     if total_num_of_ticks > (bubbles_hit_tick + BUBBLES_COOLDOWN):
         for b in all_of_the_bullets:
+            remove_index = -1
             this_bullet = b[0]
             if pygame.Rect.colliderect(bubbles_rectangle, this_bullet):
                 # print("bubbles it hit")
+                remove_index = b
                 bubbles_pos[0] = WIDTH  * random.random()
                 bubbles_pos[1] = HEIGHT * random.random()
                 bubbles_hit_tick = total_num_of_ticks
                 times_bubbles_killed += 1
+            if (remove_index != -1):
+                all_of_the_bullets.remove(remove_index)
+                
+
     else:
         # print("bubbles currently immune")
         None
@@ -236,6 +242,12 @@ while the_game_is_running:
     for this_bullet in all_of_the_bullets:
         if (this_bullet[0].centerx <= 0) or (this_bullet[0].centerx >= WIDTH) or (this_bullet[0].centery <= 0) or (this_bullet[0].centery >= HEIGHT):
             all_of_the_bullets.remove(this_bullet)
+        # if (this_bullet[0].centerx == bubbles_pos[0]) and (this_bullet[0].centery == bubbles_pos[0]):
+        #     all_of_the_bullets.remove(this_bullet)
+        # if pygame.Rect.colliderect(bubbles_rectangle, player_rectangle):
+        #     all_of_the_bullets.remove(this_bullet)
+
+
     
     for i in range(len(all_of_the_bullets)):
         if all_of_the_bullets[i][1] == "N":
