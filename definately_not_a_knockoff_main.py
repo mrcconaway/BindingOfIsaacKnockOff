@@ -12,10 +12,12 @@ import pygame
 from pygame.locals import *
 
 
+
 from essential_global_variables import *
 from entities                   import *
 from handling_power_up_stuff    import *
 from handling_bullet_stuff      import *
+import sfx
 
 
 print("\n"*5)  # this is a spacer to make it easier to troubleshoot error messages
@@ -23,6 +25,9 @@ TROUBLESHOOTING = False  # determines if print statements will occur after set a
 
 all_of_the_walls = []
 def build_wall(wall_x, wall_y, wall_LENGTH, wall_HEIGHT):
+    if wall_LENGTH <= PLAYER_WIDTH or wall_HEIGHT <= PLAYER_HEIGHT:
+        print("warning!")
+        print("walls want to be larger than the player for the logic to work")
 
     wall_rectangle   = pygame.Rect(
                                    wall_x,
@@ -59,7 +64,8 @@ def y_inside_wall(position_y, height):
                 return True
     return False
 
-build_wall(WIDTH / 2 - 50,  HEIGHT / 4,  50, 3 * HEIGHT / 4)
+build_wall(WIDTH / 4,  HEIGHT / 4,  50 + 1, HEIGHT / 2)
+build_wall(WIDTH-300, HEIGHT-300, 200, 200)
 
 all_of_the_rocks = []
 def place_rock(rock_x, rock_y, rock_LENGTH, rock_HEIGHT, breakable: bool):
@@ -78,8 +84,15 @@ def place_rock(rock_x, rock_y, rock_LENGTH, rock_HEIGHT, breakable: bool):
 player_backup_pos  = []
 bubbles_backup_pos = []
 
+### Steven's sound corner
+
+pygame.mixer.init()
+short_laser = sfx.get_shooty()
+
+###
+
 while the_game_is_running:
-    bullet_shotQ = False
+    bullet_shotQ           = False
     player_out_of_bounds_x = False
     player_out_of_bounds_y = False
 
@@ -95,21 +108,30 @@ while the_game_is_running:
     if total_num_of_ticks > (bubbles_hit_tick + BUBBLES_COOLDOWN):
         for b in all_of_the_bullets:
             if pygame.Rect.colliderect(bubbles_rectangle, b[0]):
-                # print("bubbles it hit")
-                respawnX = WIDTH  * random.random()
-                respawnY = HEIGHT * random.random()
-                # this should work, might need to fine tune the 
-                radius = 4*pygame.Surface.get_width(player)
-                while (np.sqrt( (respawnX - player_pos[0])**2 + (respawnY - player_pos[1])**2 ) < radius ):
-                    respawnX = WIDTH  * random.random()
-                    respawnY = HEIGHT * random.random()
-                    # print("respawning bubbles")
-                bubbles_pos[0] = respawnX
-                bubbles_pos[1] = respawnY
-                bubbles_hit_tick = total_num_of_ticks
-                times_bubbles_killed += 1
-
+                # # print("bubbles it hit")
+                # respawnX = WIDTH  * random.random()
+                # respawnY = HEIGHT * random.random()
+                # # this should work, might need to fine tune the 
+                # radius = 4*pygame.Surface.get_width(player)
+                # while (np.sqrt( (respawnX - player_pos[0])**2 + (respawnY - player_pos[1])**2 ) < radius ):
+                #     respawnX = WIDTH  * random.random()
+                #     respawnY = HEIGHT * random.random()
+                #     # print("respawning bubbles")
+                # bubbles_pos[0] = respawnX
+                # bubbles_pos[1] = respawnY
+                # bubbles_hit_tick = total_num_of_ticks
+                # times_bubbles_killed += 1
+                respawn_bubbles()
                 all_of_the_bullets.remove(b)
+    
+
+    for this_laser in all_of_the_lasers:
+        # print(type(this_laser))
+        if pygame.Rect.colliderect(bubbles_rectangle, this_laser):
+            # print("laser hitting bubbles")
+            respawn_bubbles()
+    all_of_the_lasers = []
+
 
     # bubbles-player collision
     if pygame.Rect.colliderect(bubbles_rectangle, player_rectangle) and (total_num_of_ticks > player_hit_tick + PLAYER_IMMUNITY_TIME):
@@ -121,24 +143,31 @@ while the_game_is_running:
             player_hit_tick = total_num_of_ticks
         
         print("shields left: "+ str(player_shields))
+        print("bubbles has killed you")
 
     # power up collisions
     for this_power_up in all_of_the_power_ups:
         if pygame.Rect.colliderect(this_power_up[0], player_rectangle):
+            print("power up collected!")
             if this_power_up[1] == "shield":
                 player_shields += 1
                 print("shields: "+ str(player_shields))
-            if this_power_up[1] == "faster_shooting":
+            if this_power_up[1] == "bullet_speed":
                 bullet_boost += 1
                 print("BULLET_BOOST ")
                 if (BULLET_COOLDOWN / bullet_boost) <= 1:
                     print("bullet speed maxed out!")
-                    POWER_UP_TYPES.remove("faster_shooting")
-            if this_power_up[1] == "player_speed_up":
+                    POWER_UP_TYPES.remove("bullet_speed")
+            if this_power_up[1] == "player_speed":
                 player_speed_variable += 50
                 print("player speed up")
+            if this_power_up[1] == "laser_beam":
+                timed_laser_tick = total_num_of_ticks
+                print("lasers!")
             
             all_of_the_power_ups.remove(this_power_up)
+    
+    
 
     # player movement
     # start jank
@@ -147,11 +176,6 @@ while the_game_is_running:
         correct_speed = True
     # end jank
     adjust_player_speed_by = (correct_speed * SPEED_CORRECTION + 1*(not correct_speed)) * (PLAYER_SPEED + player_speed_variable) // dt
-    # if inside_wall(player_pos, PLAYER_WIDTH, PLAYER_HEIGHT):
-    #     player_pos[0] = previous_player_pos[0]
-    #     player_pos[1] = previous_player_pos[1]
-    # else:
-    #     player_backup_pos = player_pos
     if (player_pos[0] < 0):
         player_out_of_bounds_x = True
         player_pos[0] = 1
@@ -164,92 +188,174 @@ while the_game_is_running:
     if (player_pos[1] > HEIGHT - pygame.Surface.get_height(player)):
         player_out_of_bounds_y = True
         player_pos[1] = HEIGHT - pygame.Surface.get_height(player) - 1
-    player_test_position = previous_player_pos
+    player_test_position = [player_pos[0], player_pos[1]]
     if pressed_keys[pygame.K_w]:
-        # player_pos[1] -= adjust_player_speed_by * (1 - player_out_of_bounds_y)
         player_test_position[1] = (player_pos[1] - adjust_player_speed_by * (1 - player_out_of_bounds_y))
     if pressed_keys[pygame.K_s]:
-        # player_pos[1] += adjust_player_speed_by * (1 - player_out_of_bounds_y)
         player_test_position[1] = (player_pos[1] + adjust_player_speed_by * (1 - player_out_of_bounds_y))
     if pressed_keys[pygame.K_a]:
-        # player_pos[0] -= adjust_player_speed_by * (1 - player_out_of_bounds_x)
         player_test_position[0] = (player_pos[0] - adjust_player_speed_by * (1 - player_out_of_bounds_x))
     if pressed_keys[pygame.K_d]:
-        # player_pos[0] += adjust_player_speed_by * (1 - player_out_of_bounds_x)
         player_test_position[0] = (player_pos[0] + adjust_player_speed_by * (1 - player_out_of_bounds_x))
     
-    # while x_inside_wall(player_test_position[0], PLAYER_WIDTH):
-    #     player_test_position[0]
-    for wall in all_of_the_walls:
-        while inside_wall(player_test_position, PLAYER_WIDTH, PLAYER_HEIGHT) and (player_test_position[0] < (wall.centerx + wall.width/2 )) and (player_test_position[0] > (wall.centerx - wall.width/2 )):
-            player_test_position[0] += 1
-        while inside_wall(player_test_position, PLAYER_WIDTH, PLAYER_HEIGHT) and (player_test_position[0] + PLAYER_WIDTH  < (wall.centerx + wall.width/2 )) and (player_test_position[0] + PLAYER_WIDTH  > (wall.centerx - wall.width/2 )):
-            player_test_position[0] -= 1
-    player_pos[0] = player_test_position[0]
-    player_pos[1] = player_test_position[1]
     
+    if inside_wall(player_pos, PLAYER_WIDTH, PLAYER_HEIGHT):
+        # print("fixing player position")
+        """
+        we need to determine which dimension (x or y) is more in the wall and alter only that one!
+        do this by brute force for now: """
+        determine_things_x1 = player_test_position[0]
+        determine_things_x2 = player_test_position[0]
+        determine_things_y1 = player_test_position[1]
+        determine_things_y2 = player_test_position[1]
+        while inside_wall([determine_things_x1, player_test_position[1]], PLAYER_WIDTH, PLAYER_HEIGHT):
+            determine_things_x1 -= 1
+        while inside_wall([determine_things_x2, player_test_position[1]], PLAYER_WIDTH, PLAYER_HEIGHT):
+            determine_things_x2 += 1
+        while inside_wall([player_test_position[0], determine_things_y1], PLAYER_WIDTH, PLAYER_HEIGHT):
+            determine_things_y1 += 1
+        while inside_wall([player_test_position[0], determine_things_y2], PLAYER_WIDTH, PLAYER_HEIGHT):
+            determine_things_y2 -= 1
+        
+        kick_by = 0
+        # not change the smallest thing to change:
+        list_of_the_tests = [
+                             np.abs(determine_things_x1 - player_test_position[0]), 
+                             np.abs(determine_things_x2 - player_test_position[0]), 
+                             np.abs(determine_things_y1 - player_test_position[1]), 
+                             np.abs(determine_things_y2 - player_test_position[1])]
+        thing_to_change = list_of_the_tests.index( np.min(list_of_the_tests) )
+        # print(list_of_the_tests)
+        if thing_to_change == 0:
+            # print("moving player RIGHT to remove from wall")
+            player_pos[0] = determine_things_x1 - kick_by
+        if thing_to_change == 1:
+            # print("moving player LEFT to remove from wall")
+            player_pos[0] = determine_things_x2 + kick_by
+        if thing_to_change == 2:
+            # print("moving player DOWN to remove from wall")
+            player_pos[1] = determine_things_y1 + kick_by
+        if thing_to_change == 3:
+            # print("moving player UP to remove from wall")
+            player_pos[1] = determine_things_y2 - kick_by
+    else:
+        player_pos = [player_test_position[0], player_test_position[1]]
+    
+    
+    if pressed_keys[pygame.K_UP] or pressed_keys[pygame.K_DOWN] or pressed_keys[pygame.K_LEFT] or pressed_keys[pygame.K_RIGHT]:
+        # bullet stuff
+        if (total_num_of_ticks > (bullet_shot_at + BULLET_COOLDOWN / bullet_boost)):
+            if (pressed_keys[pygame.K_UP] and pressed_keys[pygame.K_RIGHT]) and not bullet_shotQ:
+                direction    = "NE"
+                bullet_shotQ = True
+            if (pressed_keys[pygame.K_UP] and pressed_keys[pygame.K_LEFT]) and not bullet_shotQ:
+                direction    = "NW"
+                bullet_shotQ = True
+            if (pressed_keys[pygame.K_DOWN] and pressed_keys[pygame.K_RIGHT]) and not bullet_shotQ:
+                direction    = "SE"
+                bullet_shotQ = True
+            if (pressed_keys[pygame.K_DOWN] and pressed_keys[pygame.K_LEFT]) and not bullet_shotQ:
+                direction    = "SW"
+                bullet_shotQ = True
+            if pressed_keys[pygame.K_UP] and not bullet_shotQ:
+                direction    = "N"
+                bullet_shotQ = True
+            if pressed_keys[pygame.K_DOWN] and not bullet_shotQ:
+                direction    = "S"
+                bullet_shotQ = True
+            if pressed_keys[pygame.K_RIGHT] and not bullet_shotQ:
+                direction    = "E"
+                bullet_shotQ = True
+            if pressed_keys[pygame.K_LEFT] and not bullet_shotQ:
+                direction    = "W"
+                bullet_shotQ = True
+            
+            if (timed_laser_tick != 0) and ((timed_laser_tick + POWER_UP_DURATION) > total_num_of_ticks):
+                if direction in VALID_LASER_DIRECTIONS:
+                    all_of_the_lasers.append(generate_laser(player, player_pos, direction))
+                    sfx.shooty(short_laser)
+            elif bullet_shotQ:
+                bullet_shot_at = total_num_of_ticks
+                all_of_the_bullets.append([
+                                        generate_bullet(player, player_pos), 
+                                        direction])
+                sfx.shooty(short_laser)
+            
 
-    # bullet stuff
-    if total_num_of_ticks > (bullet_shot_at + BULLET_COOLDOWN / bullet_boost):
-        if (pressed_keys[pygame.K_UP] and pressed_keys[pygame.K_RIGHT]) and not bullet_shotQ:
-            direction    = "NE"
-            bullet_shotQ = True
-        if (pressed_keys[pygame.K_UP] and pressed_keys[pygame.K_LEFT]) and not bullet_shotQ:
-            direction    = "NW"
-            bullet_shotQ = True
-        if (pressed_keys[pygame.K_DOWN] and pressed_keys[pygame.K_RIGHT]) and not bullet_shotQ:
-            direction    = "SE"
-            bullet_shotQ = True
-        if (pressed_keys[pygame.K_DOWN] and pressed_keys[pygame.K_LEFT]) and not bullet_shotQ:
-            direction    = "SW"
-            bullet_shotQ = True
-        if pressed_keys[pygame.K_UP] and not bullet_shotQ:
-            direction    = "N"
-            bullet_shotQ = True
-        if pressed_keys[pygame.K_DOWN] and not bullet_shotQ:
-            direction    = "S"
-            bullet_shotQ = True
-        if pressed_keys[pygame.K_RIGHT] and not bullet_shotQ:
-            direction    = "E"
-            bullet_shotQ = True
-        if pressed_keys[pygame.K_LEFT] and not bullet_shotQ:
-            direction    = "W"
-            bullet_shotQ = True
-        if bullet_shotQ:
-            bullet_shot_at = total_num_of_ticks
-            all_of_the_bullets.append([
-                                       generate_bullet(player, player_pos), 
-                                       direction])
+
 
     # stuff for bubbles
     # the "< 5" bit here was picked arbitrarily because it seemed to work to get rid of bubble's jitteryness
     # if (abs(bubbles_pos[0] - player_pos[0]) < 5) and (abs(bubbles_pos[1] - player_pos[1]) < 5):
     #     bubbles_pos[0] = player_pos[0]
     #     bubbles_pos[1] = player_pos[1]
+    adjust_bubbles_x = 0
+    adjust_bubbles_y = 0
+    if bubbles_pos[0] < player_pos[0] - pygame.Surface.get_height(player) / pygame.Surface.get_height(bubbles) :
+        adjust_bubbles_x += BUBBLES_SPEED // dt
+    if bubbles_pos[0] > player_pos[0] + pygame.Surface.get_height(player) / pygame.Surface.get_height(bubbles):
+        adjust_bubbles_x -= BUBBLES_SPEED // dt
+    if bubbles_pos[1] < player_pos[1] - pygame.Surface.get_width(player)  / pygame.Surface.get_width(bubbles):
+        adjust_bubbles_y += BUBBLES_SPEED // dt
+    if bubbles_pos[1] > player_pos[1] + pygame.Surface.get_width(player)  / pygame.Surface.get_width(bubbles):
+        adjust_bubbles_y -= BUBBLES_SPEED // dt
+    
+    bubbles_test_position = [bubbles_pos[0], bubbles_pos[1]]
+    if inside_wall(bubbles_pos, BUBBLES_WIDTH, BUBBLES_HEIGHT):
+        # print("fixing bubbles position")
+        """
+        we need to determine which dimension (x or y) is more in the wall and alter only that one!
+        do this by brute force for now: """
+        determine_things_x1 = bubbles_test_position[0]
+        determine_things_x2 = bubbles_test_position[0]
+        determine_things_y1 = bubbles_test_position[1]
+        determine_things_y2 = bubbles_test_position[1]
+        while inside_wall([determine_things_x1, bubbles_test_position[1]], BUBBLES_WIDTH, BUBBLES_HEIGHT):
+            determine_things_x1 -= 1
+        while inside_wall([determine_things_x2, bubbles_test_position[1]], BUBBLES_WIDTH, BUBBLES_HEIGHT):
+            determine_things_x2 += 1
+        while inside_wall([bubbles_test_position[0], determine_things_y1], BUBBLES_WIDTH, BUBBLES_HEIGHT):
+            determine_things_y1 += 1
+        while inside_wall([bubbles_test_position[0], determine_things_y2], BUBBLES_WIDTH, BUBBLES_HEIGHT):
+            determine_things_y2 -= 1
+        
+        kick_by = 0
+        # not change the smallest thing to change:
+        list_of_the_tests = [
+                             np.abs(determine_things_x1 - bubbles_test_position[0]), 
+                             np.abs(determine_things_x2 - bubbles_test_position[0]), 
+                             np.abs(determine_things_y1 - bubbles_test_position[1]), 
+                             np.abs(determine_things_y2 - bubbles_test_position[1])]
+        thing_to_change = list_of_the_tests.index( np.min(list_of_the_tests) )
+        # print(list_of_the_tests)
+        if thing_to_change == 0:
+            # print("moving bubbles RIGHT to remove from wall")
+            bubbles_pos[0] = determine_things_x1 - kick_by
+        if thing_to_change == 1:
+            # print("moving bubbles LEFT to remove from wall")
+            bubbles_pos[0] = determine_things_x2 + kick_by
+        if thing_to_change == 2:
+            # print("moving bubbles DOWN to remove from wall")
+            bubbles_pos[1] = determine_things_y1 + kick_by
+        if thing_to_change == 3:
+            # print("moving bubbles UP to remove from wall")
+            bubbles_pos[1] = determine_things_y2 - kick_by
     else:
-        adjust_bubbles_x = 0
-        adjust_bubbles_y = 0
-        if bubbles_pos[0] < player_pos[0] - pygame.Surface.get_height(player) / pygame.Surface.get_height(bubbles) :
-            adjust_bubbles_x += BUBBLES_SPEED // dt
-        if bubbles_pos[0] > player_pos[0] + pygame.Surface.get_height(player) / pygame.Surface.get_height(bubbles):
-            adjust_bubbles_x -= BUBBLES_SPEED // dt
-        if bubbles_pos[1] < player_pos[1] - pygame.Surface.get_width(player)  / pygame.Surface.get_width(bubbles):
-            adjust_bubbles_y += BUBBLES_SPEED // dt
-        if bubbles_pos[1] > player_pos[1] + pygame.Surface.get_width(player)  / pygame.Surface.get_width(bubbles):
-            adjust_bubbles_y -= BUBBLES_SPEED // dt
-        
-        if inside_wall(player_pos,  PLAYER_WIDTH,  PLAYER_HEIGHT ):
-            print("player inside wall")
-        if inside_wall(bubbles_pos, BUBBLES_WIDTH, BUBBLES_HEIGHT):
-            print("bubbles inside wall")
-        
+        bubbles_pos[0] = bubbles_test_position[0]
+        bubbles_pos[1] = bubbles_test_position[1]
 
-        if (adjust_bubbles_x != 0) and (adjust_bubbles_y != 0):
-            bubbles_pos[0] += SPEED_CORRECTION * adjust_bubbles_x // 1
-            bubbles_pos[1] += SPEED_CORRECTION * adjust_bubbles_y // 1
-        else:
-            bubbles_pos[0] += adjust_bubbles_x
-            bubbles_pos[1] += adjust_bubbles_y
+    
+    # if inside_wall(player_pos,  PLAYER_WIDTH,  PLAYER_HEIGHT ):
+    #     print("player inside wall")
+    # if inside_wall(bubbles_pos, BUBBLES_WIDTH, BUBBLES_HEIGHT):
+    #     print("bubbles inside wall")
+    
+    if (adjust_bubbles_x != 0) and (adjust_bubbles_y != 0):
+        bubbles_pos[0] += SPEED_CORRECTION * adjust_bubbles_x // 1
+        bubbles_pos[1] += SPEED_CORRECTION * adjust_bubbles_y // 1
+    else:
+        bubbles_pos[0] += adjust_bubbles_x
+        bubbles_pos[1] += adjust_bubbles_y
 
     
 
@@ -269,7 +375,7 @@ while the_game_is_running:
 
     # try and fix player_rect and bubbles_rect here
     if previous_player_pos == player_pos:
-        player_rectangle  = pygame.Rect.move(player_rectangle, 0, 0)
+        player_rectangle = pygame.Rect.move(player_rectangle, 0, 0)
     else:
         player_rectangle  = pygame.Rect.move(
                                              player_rectangle, 
@@ -289,26 +395,32 @@ while the_game_is_running:
     screen.blit(player, player_pos)
     screen.blit(bubbles, bubbles_pos)
     for this_power_up in all_of_the_power_ups:
-        if this_power_up[1] == "faster_shooting":
+        if this_power_up[1] == "bullet_speed":
             screen.blit(bullet_speed_icon, 
                         [this_power_up[0].centerx, 
-                        this_power_up[0].centery]
+                         this_power_up[0].centery]
                         )
         if this_power_up[1] == "shield":
             screen.blit(shield_icon, 
                         [this_power_up[0].centerx, 
-                        this_power_up[0].centery]
+                         this_power_up[0].centery]
                         )
-        if this_power_up[1] == "player_speed_up":
+        if this_power_up[1] == "player_speed":
             screen.blit(speed_boost_icon, 
                         [this_power_up[0].centerx, 
-                        this_power_up[0].centery]
+                         this_power_up[0].centery]
                         )
+        if this_power_up[1] == "laser_beam":
+            screen.blit(laser_beam_icon,
+                        [this_power_up[0].centerx, 
+                         this_power_up[0].centery]
+                        )
+
     #wall stuff here
     for wall in all_of_the_walls:
         pygame.draw.rect(screen, BLUE, wall)
     
-    # pygame.draw.rect(screen, BLUE,   player_rectangle )
+    # pygame.draw.rect(screen, GREEN,  player_rectangle )
     # pygame.draw.rect(screen, YELLOW, bubbles_rectangle)
 
     for this_bullet in all_of_the_bullets:
@@ -336,6 +448,9 @@ while the_game_is_running:
             all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],  SPEED_CORRECTION * BULLET_SPEED / dt,  SPEED_CORRECTION * BULLET_SPEED / dt)
         
         pygame.draw.rect(screen, RED, all_of_the_bullets[i][0])
+    
+    for this_laser in all_of_the_lasers:
+        pygame.draw.rect(screen, RED, this_laser)
     
     pygame.display.update()
 
