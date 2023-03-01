@@ -54,13 +54,12 @@ def generate_laser(player, player_pos, direction):
                                 BULLET_SIZE, essential_global_variables.HEIGHT - player_pos[1] + pygame.Surface.get_width(player) / 2
                                 )
             laser_S.append(laser)
-        # all_of_the_lasers.append(laser)
         return laser
     else:
         print("not a laser")
 
 VALID_SHOT_DIRECTIONS  = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
-VALID_LASER_DIRECTIONS = ["N", "S", "E", "W"]
+VALID_LASER_DIRECTIONS = ["N", "E", "S", "W"]
 
 
 # all_of_the_bullets will store each bullet as a list of length 2 in the format:

@@ -33,20 +33,19 @@ bubbles_rectangle = pygame.Rect(
                                 BUBBLES_HEIGHT
                                 )
 
-def respawn_bubbles():
-    # copy/pasted from above
-            # print("bubbles it hit")
-                respawnX = essential_global_variables.WIDTH  * random.random()
-                respawnY = essential_global_variables.HEIGHT * random.random()
-                # this should work, might need to fine tune the 
-                radius = 6*pygame.Surface.get_width(player)
-                while (np.sqrt( (respawnX - essential_global_variables.player_pos[0])**2 + (respawnY - essential_global_variables.player_pos[1])**2 ) < radius ):
-                    respawnX = essential_global_variables.WIDTH  * random.random()
-                    respawnY = essential_global_variables.HEIGHT * random.random()
-                    # print("respawning bubbles")
-                essential_global_variables.bubbles_pos[0] = respawnX
-                essential_global_variables.bubbles_pos[1] = respawnY
-                essential_global_variables.bubbles_hit_tick = essential_global_variables.total_num_of_ticks
-                essential_global_variables.times_bubbles_killed += 1
+def respawn_bubbles(player_pos):
+    # copy/pasted from before
+    # print("bubbles it hit")
+    respawnX = essential_global_variables.WIDTH  * random.random()
+    respawnY = essential_global_variables.HEIGHT * random.random()
+    # this should work, might need to fine tune the 
+    radius = 6*pygame.Surface.get_width(player)
+    while (np.sqrt( (respawnX - player_pos[0])**2 + (respawnY - player_pos[1])**2 ) < radius ):
+        respawnX = essential_global_variables.WIDTH  * random.random()
+        respawnY = essential_global_variables.HEIGHT * random.random()
+        # print("respawning bubbles")
+    essential_global_variables.bubbles_pos[0] = respawnX
+    essential_global_variables.bubbles_pos[1] = respawnY
+    essential_global_variables.bubbles_hit_tick = essential_global_variables.total_num_of_ticks
 
 

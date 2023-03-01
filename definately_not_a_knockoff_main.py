@@ -64,8 +64,9 @@ def y_inside_wall(position_y, height):
                 return True
     return False
 
-build_wall(WIDTH / 4,  HEIGHT / 4,  50 + 1, HEIGHT / 2)
-build_wall(WIDTH-300, HEIGHT-300, 200, 200)
+build_wall(WIDTH * 1/4,  HEIGHT * 3/7,  50 + 1    , HEIGHT * 2/7)
+build_wall(WIDTH * 3/7,  HEIGHT * 1/4, WIDTH * 2/7, 50 + 1)
+build_wall(500, 500, 150, 150)
 
 all_of_the_rocks = []
 def place_rock(rock_x, rock_y, rock_LENGTH, rock_HEIGHT, breakable: bool):
@@ -87,7 +88,8 @@ bubbles_backup_pos = []
 ### Steven's sound corner
 
 pygame.mixer.init()
-short_laser = sfx.get_shooty()
+shoot_sound_1 = sfx.get_shooty()
+shoot_sound_2 = sfx.triple_shooty()
 
 ###
 
@@ -108,28 +110,14 @@ while the_game_is_running:
     if total_num_of_ticks > (bubbles_hit_tick + BUBBLES_COOLDOWN):
         for b in all_of_the_bullets:
             if pygame.Rect.colliderect(bubbles_rectangle, b[0]):
-                # # print("bubbles it hit")
-                # respawnX = WIDTH  * random.random()
-                # respawnY = HEIGHT * random.random()
-                # # this should work, might need to fine tune the 
-                # radius = 4*pygame.Surface.get_width(player)
-                # while (np.sqrt( (respawnX - player_pos[0])**2 + (respawnY - player_pos[1])**2 ) < radius ):
-                #     respawnX = WIDTH  * random.random()
-                #     respawnY = HEIGHT * random.random()
-                #     # print("respawning bubbles")
-                # bubbles_pos[0] = respawnX
-                # bubbles_pos[1] = respawnY
-                # bubbles_hit_tick = total_num_of_ticks
-                # times_bubbles_killed += 1
-                respawn_bubbles()
+                respawn_bubbles(player_pos)
+                times_bubbles_killed += 1
                 all_of_the_bullets.remove(b)
-    
 
     for this_laser in all_of_the_lasers:
-        # print(type(this_laser))
         if pygame.Rect.colliderect(bubbles_rectangle, this_laser):
-            # print("laser hitting bubbles")
-            respawn_bubbles()
+            respawn_bubbles(player_pos)
+            times_bubbles_killed += 1
     all_of_the_lasers = []
 
 
@@ -143,7 +131,7 @@ while the_game_is_running:
             player_hit_tick = total_num_of_ticks
         
         print("shields left: "+ str(player_shields))
-        print("bubbles has killed you")
+        print("bubbles has hit you")
 
     # power up collisions
     for this_power_up in all_of_the_power_ups:
@@ -157,13 +145,19 @@ while the_game_is_running:
                 print("BULLET_BOOST ")
                 if (BULLET_COOLDOWN / bullet_boost) <= 1:
                     print("bullet speed maxed out!")
-                    POWER_UP_TYPES.remove("bullet_speed")
+                    try:
+                        POWER_UP_TYPES.remove("bullet_speed")
+                    except:
+                        print("bullet speed already removed")
             if this_power_up[1] == "player_speed":
                 player_speed_variable += 50
                 print("player speed up")
             if this_power_up[1] == "laser_beam":
                 timed_laser_tick = total_num_of_ticks
                 print("lasers!")
+            if this_power_up[1] == "triple_shot":
+                triple_shot_tick = total_num_of_ticks
+                print("triple shot!")
             
             all_of_the_power_ups.remove(this_power_up)
     
@@ -218,25 +212,19 @@ while the_game_is_running:
             determine_things_y2 -= 1
         
         kick_by = 0
-        # not change the smallest thing to change:
         list_of_the_tests = [
                              np.abs(determine_things_x1 - player_test_position[0]), 
                              np.abs(determine_things_x2 - player_test_position[0]), 
                              np.abs(determine_things_y1 - player_test_position[1]), 
                              np.abs(determine_things_y2 - player_test_position[1])]
         thing_to_change = list_of_the_tests.index( np.min(list_of_the_tests) )
-        # print(list_of_the_tests)
         if thing_to_change == 0:
-            # print("moving player RIGHT to remove from wall")
             player_pos[0] = determine_things_x1 - kick_by
         if thing_to_change == 1:
-            # print("moving player LEFT to remove from wall")
             player_pos[0] = determine_things_x2 + kick_by
         if thing_to_change == 2:
-            # print("moving player DOWN to remove from wall")
             player_pos[1] = determine_things_y1 + kick_by
         if thing_to_change == 3:
-            # print("moving player UP to remove from wall")
             player_pos[1] = determine_things_y2 - kick_by
     else:
         player_pos = [player_test_position[0], player_test_position[1]]
@@ -270,16 +258,44 @@ while the_game_is_running:
                 direction    = "W"
                 bullet_shotQ = True
             
+            
             if (timed_laser_tick != 0) and ((timed_laser_tick + POWER_UP_DURATION) > total_num_of_ticks):
-                if direction in VALID_LASER_DIRECTIONS:
-                    all_of_the_lasers.append(generate_laser(player, player_pos, direction))
-                    sfx.shooty(short_laser)
+                if (triple_shot_tick != 0) and ((triple_shot_tick + POWER_UP_DURATION) > total_num_of_ticks):
+                    if direction in VALID_LASER_DIRECTIONS:
+                        direction = [direction]
+                        # print(VALID_LASER_DIRECTIONS.index( direction[0] ))
+                        direction.append( VALID_LASER_DIRECTIONS[ VALID_LASER_DIRECTIONS.index( direction[0] ) - 1 ] )
+                        try:
+                            direction.append( VALID_LASER_DIRECTIONS[ VALID_LASER_DIRECTIONS.index( direction[0] ) + 1 ] )
+                        except:
+                            direction.append( VALID_LASER_DIRECTIONS[ 0 ] )
+                        for i in range(len(direction)):
+                            all_of_the_lasers.append(generate_laser(player, player_pos, direction[i]))
+                    sfx.shooty(shoot_sound_1)
+                else:
+                    if direction in VALID_LASER_DIRECTIONS:
+                        all_of_the_lasers.append(generate_laser(player, player_pos, direction))
+                    sfx.shooty(shoot_sound_2)
             elif bullet_shotQ:
                 bullet_shot_at = total_num_of_ticks
-                all_of_the_bullets.append([
-                                        generate_bullet(player, player_pos), 
-                                        direction])
-                sfx.shooty(short_laser)
+                if (triple_shot_tick != 0) and ((triple_shot_tick + POWER_UP_DURATION) > total_num_of_ticks):
+                    direction = [direction]
+                    direction.append( VALID_SHOT_DIRECTIONS[ VALID_SHOT_DIRECTIONS.index( direction[0] ) - 1 ] )
+                    try:
+                        direction.append( VALID_SHOT_DIRECTIONS[ VALID_SHOT_DIRECTIONS.index( direction[0] ) + 1 ] )
+                    except:
+                        direction.append( VALID_SHOT_DIRECTIONS[ 0 ] )
+                    for i in range(len(direction)):
+                        # print(direction[i])
+                        all_of_the_bullets.append([
+                                            generate_bullet(player, player_pos), 
+                                            direction[i]])
+                    sfx.shooty(shoot_sound_1)
+                else:
+                    all_of_the_bullets.append([
+                                            generate_bullet(player, player_pos), 
+                                            direction])
+                    sfx.shooty(shoot_sound_2)
             
 
 
@@ -415,6 +431,11 @@ while the_game_is_running:
                         [this_power_up[0].centerx, 
                          this_power_up[0].centery]
                         )
+        if this_power_up[1] == "triple_shot":
+            screen.blit(triple_shot_icon,
+                        [this_power_up[0].centerx, 
+                         this_power_up[0].centery]
+                        )
 
     #wall stuff here
     for wall in all_of_the_walls:
@@ -478,4 +499,4 @@ print("")
 print("- - - done - - -")
 print("")
 
-print("times bubbles killed: "+ str(times_bubbles_killed))
+print("times bubbles killed: "+ str(times_bubbles_killed))  # currently broken

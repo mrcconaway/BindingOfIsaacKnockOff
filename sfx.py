@@ -6,8 +6,16 @@ def get_shooty(samplename='laser_short_dry.wav'):
     if platform.system() == "macOS":
         laser_short_dry = pygame.mixer.Sound('./../audio/'+samplename) # this will need to be fixed with os to work on everyones shit
     else:
-        laser_short_dry = pygame.mixer.Sound('resources/audio/'+samplename) # this will need to be fixed with os to work on everyones shit
+        laser_short_dry = pygame.mixer.Sound('resources/audio/'+samplename)
     return(laser_short_dry)
+
+def triple_shooty(samplename='laser_lomg_dry.wav'):
+    if platform.system() == "macOS":
+        laser_short_dry = pygame.mixer.Sound('./../audio/'+samplename) # this will need to be fixed with os to work on everyones shit
+    else:
+        laser_short_dry = pygame.mixer.Sound('resources/audio/'+samplename)
+    return(laser_short_dry)
+
 
 def shooty(sample):
 	sample.play()
