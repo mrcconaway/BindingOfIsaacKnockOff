@@ -64,9 +64,18 @@ def y_inside_wall(position_y, height):
                 return True
     return False
 
+# bound the playable space:
+build_wall(    0,    -51, WIDTH,     51)
+build_wall(    0, HEIGHT, WIDTH,     51)
+build_wall(  -51,      0,    51, HEIGHT)
+build_wall(WIDTH,      0,    51, HEIGHT)
+
+
 build_wall(WIDTH * 1/4,  HEIGHT * 3/7,  50 + 1    , HEIGHT * 2/7)
 build_wall(WIDTH * 3/7,  HEIGHT * 1/4, WIDTH * 2/7, 50 + 1)
 build_wall(500, 500, 150, 150)
+
+
 
 all_of_the_rocks = []
 def place_rock(rock_x, rock_y, rock_LENGTH, rock_HEIGHT, breakable: bool):
@@ -95,8 +104,8 @@ shoot_sound_2 = sfx.triple_shooty()
 
 while the_game_is_running:
     bullet_shotQ           = False
-    player_out_of_bounds_x = False
-    player_out_of_bounds_y = False
+    # player_out_of_bounds_x = False
+    # player_out_of_bounds_y = False
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -170,27 +179,27 @@ while the_game_is_running:
         correct_speed = True
     # end jank
     adjust_player_speed_by = (correct_speed * SPEED_CORRECTION + 1*(not correct_speed)) * (PLAYER_SPEED + player_speed_variable) // dt
-    if (player_pos[0] < 0):
-        player_out_of_bounds_x = True
-        player_pos[0] = 1
-    if (player_pos[0] > WIDTH - pygame.Surface.get_width(player)):
-        player_out_of_bounds_x = True
-        player_pos[0] = WIDTH - pygame.Surface.get_width(player) - 1
-    if (player_pos[1] < 0):
-        player_out_of_bounds_y = True
-        player_pos[1] = 1
-    if (player_pos[1] > HEIGHT - pygame.Surface.get_height(player)):
-        player_out_of_bounds_y = True
-        player_pos[1] = HEIGHT - pygame.Surface.get_height(player) - 1
+    # if (player_pos[0] < 0):
+    #     player_out_of_bounds_x = True
+    #     player_pos[0] = 1
+    # if (player_pos[0] > WIDTH - pygame.Surface.get_width(player)):
+    #     player_out_of_bounds_x = True
+    #     player_pos[0] = WIDTH - pygame.Surface.get_width(player) - 1
+    # if (player_pos[1] < 0):
+    #     player_out_of_bounds_y = True
+    #     player_pos[1] = 1
+    # if (player_pos[1] > HEIGHT - pygame.Surface.get_height(player)):
+    #     player_out_of_bounds_y = True
+    #     player_pos[1] = HEIGHT - pygame.Surface.get_height(player) - 1
     player_test_position = [player_pos[0], player_pos[1]]
     if pressed_keys[pygame.K_w]:
-        player_test_position[1] = (player_pos[1] - adjust_player_speed_by * (1 - player_out_of_bounds_y))
+        player_test_position[1] = player_pos[1] - adjust_player_speed_by# * (1 - player_out_of_bounds_y))
     if pressed_keys[pygame.K_s]:
-        player_test_position[1] = (player_pos[1] + adjust_player_speed_by * (1 - player_out_of_bounds_y))
+        player_test_position[1] = player_pos[1] + adjust_player_speed_by# * (1 - player_out_of_bounds_y))
     if pressed_keys[pygame.K_a]:
-        player_test_position[0] = (player_pos[0] - adjust_player_speed_by * (1 - player_out_of_bounds_x))
+        player_test_position[0] = player_pos[0] - adjust_player_speed_by# * (1 - player_out_of_bounds_x))
     if pressed_keys[pygame.K_d]:
-        player_test_position[0] = (player_pos[0] + adjust_player_speed_by * (1 - player_out_of_bounds_x))
+        player_test_position[0] = player_pos[0] + adjust_player_speed_by# * (1 - player_out_of_bounds_x))
     
     
     if inside_wall(player_pos, PLAYER_WIDTH, PLAYER_HEIGHT):
@@ -445,8 +454,8 @@ while the_game_is_running:
     # pygame.draw.rect(screen, YELLOW, bubbles_rectangle)
 
     for this_bullet in all_of_the_bullets:
-        if (this_bullet[0].centerx <= 0) or (this_bullet[0].centerx >= WIDTH) or (this_bullet[0].centery <= 0) or (this_bullet[0].centery >= HEIGHT):
-            all_of_the_bullets.remove(this_bullet)
+        # if (this_bullet[0].centerx <= 0) or (this_bullet[0].centerx >= WIDTH) or (this_bullet[0].centery <= 0) or (this_bullet[0].centery >= HEIGHT):
+        #     all_of_the_bullets.remove(this_bullet)
         if inside_wall([this_bullet[0].centerx, this_bullet[0].centery], this_bullet[0].width, this_bullet[0].height):
             all_of_the_bullets.remove(this_bullet)
     
