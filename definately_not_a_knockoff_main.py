@@ -445,6 +445,11 @@ while the_game_is_running:
                         [this_power_up[0].centerx, 
                          this_power_up[0].centery]
                         )
+        if this_power_up[1] == "bouncy_bullet":
+            screen.blit(bouncy_bullet_icon,
+                        [this_power_up[0].centerx, 
+                         this_power_up[0].centery]
+                        )
 
     #wall stuff here
     for wall in all_of_the_walls:
@@ -456,8 +461,12 @@ while the_game_is_running:
     for this_bullet in all_of_the_bullets:
         # if (this_bullet[0].centerx <= 0) or (this_bullet[0].centerx >= WIDTH) or (this_bullet[0].centery <= 0) or (this_bullet[0].centery >= HEIGHT):
         #     all_of_the_bullets.remove(this_bullet)
+                # TODO: Add and if statement checking for bouncy bullets
         if inside_wall([this_bullet[0].centerx, this_bullet[0].centery], this_bullet[0].width, this_bullet[0].height):
             all_of_the_bullets.remove(this_bullet)
+
+        # TODO: Add and if statement checking for bouncy bullets
+        # if(bouncy_bullets):
     
     for i in range(len(all_of_the_bullets)):
         if all_of_the_bullets[i][1] == "N":
@@ -478,6 +487,8 @@ while the_game_is_running:
             all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],  SPEED_CORRECTION * BULLET_SPEED / dt,  SPEED_CORRECTION * BULLET_SPEED / dt)
         
         pygame.draw.rect(screen, RED, all_of_the_bullets[i][0])
+    
+            
     
     for this_laser in all_of_the_lasers:
         pygame.draw.rect(screen, RED, this_laser)
