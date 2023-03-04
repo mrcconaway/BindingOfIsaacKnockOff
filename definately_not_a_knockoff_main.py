@@ -446,6 +446,7 @@ while the_game_is_running:
                          this_power_up[0].centery]
                         )
         if this_power_up[1] == "bouncy_bullet":
+            bouncy_bullets = True
             screen.blit(bouncy_bullet_icon,
                         [this_power_up[0].centerx, 
                          this_power_up[0].centery]
@@ -461,12 +462,35 @@ while the_game_is_running:
     for this_bullet in all_of_the_bullets:
         # if (this_bullet[0].centerx <= 0) or (this_bullet[0].centerx >= WIDTH) or (this_bullet[0].centery <= 0) or (this_bullet[0].centery >= HEIGHT):
         #     all_of_the_bullets.remove(this_bullet)
-                # TODO: Add and if statement checking for bouncy bullets
-        if inside_wall([this_bullet[0].centerx, this_bullet[0].centery], this_bullet[0].width, this_bullet[0].height):
-            all_of_the_bullets.remove(this_bullet)
+
 
         # TODO: Add and if statement checking for bouncy bullets
-        # if(bouncy_bullets):
+        # IDEA: I want to use the logic for "inside_wall" to determine if the bullet is almost inside the wall (that way I do not have to write new logic)
+        if(bouncy_bullets):
+            # almost inside the wall to the left
+            bounce_offset = 1.5
+            if this_bullet[1] == "W":
+                if inside_wall([this_bullet[0].centerx-bounce_offset, this_bullet[0].centery], this_bullet[0].width, this_bullet[0].height):
+                    this_bullet[1] = "E"
+                    pygame.Rect.move(this_bullet[0],  BULLET_SPEED / dt + bounce_offset, 0)
+            elif this_bullet[1] == "E":
+                if inside_wall([this_bullet[0].centerx+bounce_offset, this_bullet[0].centery], this_bullet[0].width, this_bullet[0].height):
+                    this_bullet[1] = "W"
+                    pygame.Rect.move(this_bullet[0],  -BULLET_SPEED / dt, 0)
+            elif this_bullet[1] == "S":
+                if inside_wall([this_bullet[0].centerx, this_bullet[0].centery - bounce_offset], this_bullet[0].width, this_bullet[0].height):
+                    this_bullet[1] = "N"
+                    pygame.Rect.move(this_bullet[0], 0, BULLET_SPEED / dt + bounce_offset)
+            elif this_bullet[1] == "N":
+                if inside_wall([this_bullet[0].centerx, this_bullet[0].centery + bounce_offset], this_bullet[0].width, this_bullet[0].height):
+                    this_bullet[1] = "S"
+                    pygame.Rect.move(this_bullet[0], 0, -BULLET_SPEED / dt - bounce_offset)
+
+        elif inside_wall([this_bullet[0].centerx, this_bullet[0].centery], this_bullet[0].width, this_bullet[0].height):
+            all_of_the_bullets.remove(this_bullet)
+
+
+
     
     for i in range(len(all_of_the_bullets)):
         if all_of_the_bullets[i][1] == "N":

@@ -61,6 +61,7 @@ def generate_laser(player, player_pos, direction):
 
 # boolean for bouncy bullet modification
 bouncy_bullets = False
+# bouncy_bullets = True
 
 
 VALID_SHOT_DIRECTIONS  = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
