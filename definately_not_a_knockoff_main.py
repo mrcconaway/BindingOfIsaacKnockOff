@@ -467,7 +467,6 @@ while the_game_is_running:
         # TODO: Add and if statement checking for bouncy bullets
         # IDEA: I want to use the logic for "inside_wall" to determine if the bullet is almost inside the wall (that way I do not have to write new logic)
         if(bouncy_bullets):
-
             if (this_bullet[1] == "N"):
                 if inside_wall([this_bullet[0].centerx, this_bullet[0].centery-1], this_bullet[0].width, this_bullet[0].height):
                     this_bullet[1]="S"
@@ -483,8 +482,7 @@ while the_game_is_running:
             if (this_bullet[1] == "E"):
                 if inside_wall([this_bullet[0].centerx+1, this_bullet[0].centery], this_bullet[0].width, this_bullet[0].height):
                     this_bullet[1]="W"
-                    this_bullet[0] = pygame.Rect.move(this_bullet[0], -BULLET_SPEED / dt, 0)          
-
+                    this_bullet[0] = pygame.Rect.move(this_bullet[0], -BULLET_SPEED / dt, 0) 
 
         elif inside_wall([this_bullet[0].centerx, this_bullet[0].centery], this_bullet[0].width, this_bullet[0].height):
             all_of_the_bullets.remove(this_bullet)
