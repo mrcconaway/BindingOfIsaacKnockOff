@@ -30,6 +30,11 @@ YELLOW  = (255, 255, 0)
 CYAN    = (0,   255, 255)
 MAGENTA = (255, 0,   255)
 
+default_player_health  = 50
+default_bubbles_health = 30
+bullet_damage  = 10
+bubbles_damage = 25
+
 # initialize variables for loop
 player_shields       = 0
 bubbles_hit_tick     = 0
@@ -37,6 +42,9 @@ player_hit_tick      = 0
 times_bubbles_killed = 0
 total_num_of_ticks   = 0
 the_game_is_running  = True
+bubbles_health       = default_bubbles_health
+player_health        = default_player_health
+red_box_cooldown     = 2  # amount of ticks that an entity till flash red once hit
 
 previous_player_pos  = [player_pos[0] , player_pos[1] ]
 previous_bubbles_pos = [bubbles_pos[0], bubbles_pos[1]]

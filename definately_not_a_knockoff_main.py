@@ -102,6 +102,8 @@ shoot_sound_2 = sfx.triple_shooty()
 
 ###
 
+
+
 while the_game_is_running:
     bullet_shotQ           = False
     # player_out_of_bounds_x = False
@@ -110,6 +112,13 @@ while the_game_is_running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             the_game_is_running = False
+    
+    if player_health <= 0:
+        the_game_is_running = False
+    if bubbles_health <= 0:
+        bubbles_health = respawn_bubbles(player_pos)
+        times_bubbles_killed += 1
+        bubbles_hit_tick = 0
 
     pressed_keys = pygame.key.get_pressed()
     if pressed_keys[pygame.K_ESCAPE]:
@@ -119,14 +128,18 @@ while the_game_is_running:
     if total_num_of_ticks > (bubbles_hit_tick + BUBBLES_COOLDOWN):
         for b in all_of_the_bullets:
             if pygame.Rect.colliderect(bubbles_rectangle, b[0]):
-                respawn_bubbles(player_pos)
-                times_bubbles_killed += 1
+                # respawn_bubbles(player_pos)
+                # times_bubbles_killed += 1
+                bubbles_health -= bullet_damage
                 all_of_the_bullets.remove(b)
+
+                bubbles_hit_tick = total_num_of_ticks
 
     for this_laser in all_of_the_lasers:
         if pygame.Rect.colliderect(bubbles_rectangle, this_laser):
-            respawn_bubbles(player_pos)
-            times_bubbles_killed += 1
+            bubbles_health -= bullet_damage
+            # respawn_bubbles(player_pos)
+            # times_bubbles_killed += 1
     all_of_the_lasers = []
 
 
@@ -134,13 +147,16 @@ while the_game_is_running:
     if pygame.Rect.colliderect(bubbles_rectangle, player_rectangle) and (total_num_of_ticks > player_hit_tick + PLAYER_IMMUNITY_TIME):
         # print("you're getting hit!")
         if player_shields == 0:
-            the_game_is_running = False
+            player_health -= bubbles_damage
         else:
             player_shields -= 1
             player_hit_tick = total_num_of_ticks
         
         print("shields left: "+ str(player_shields))
+        print("health left : "+ str(player_health))
         print("bubbles has hit you")
+        
+        player_hit_tick = total_num_of_ticks
 
     # power up collisions
     for this_power_up in all_of_the_power_ups:
@@ -449,9 +465,6 @@ while the_game_is_running:
     #wall stuff here
     for wall in all_of_the_walls:
         pygame.draw.rect(screen, BLUE, wall)
-    
-    # pygame.draw.rect(screen, GREEN,  player_rectangle )
-    # pygame.draw.rect(screen, YELLOW, bubbles_rectangle)
 
     for this_bullet in all_of_the_bullets:
         # if (this_bullet[0].centerx <= 0) or (this_bullet[0].centerx >= WIDTH) or (this_bullet[0].centery <= 0) or (this_bullet[0].centery >= HEIGHT):
@@ -481,6 +494,11 @@ while the_game_is_running:
     
     for this_laser in all_of_the_lasers:
         pygame.draw.rect(screen, RED, this_laser)
+    
+    if (player_hit_tick + red_box_cooldown  >= total_num_of_ticks) and (total_num_of_ticks > red_box_cooldown):
+        pygame.draw.rect(screen, RED,  player_rectangle )
+    if (bubbles_hit_tick + red_box_cooldown >= total_num_of_ticks) and (total_num_of_ticks > red_box_cooldown):
+        pygame.draw.rect(screen, RED, bubbles_rectangle)
     
     pygame.display.update()
 

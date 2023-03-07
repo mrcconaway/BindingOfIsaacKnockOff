@@ -48,4 +48,7 @@ def respawn_bubbles(player_pos):
     essential_global_variables.bubbles_pos[1] = respawnY
     essential_global_variables.bubbles_hit_tick = essential_global_variables.total_num_of_ticks
 
+    bubbles_health = essential_global_variables.default_bubbles_health
+    return bubbles_health
+
 
