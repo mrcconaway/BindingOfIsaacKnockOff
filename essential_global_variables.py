@@ -33,6 +33,7 @@ MAGENTA = (255, 0,   255)
 default_player_health  = 50
 default_bubbles_health = 30
 bullet_damage  = 10
+laser_damage   = 2
 bubbles_damage = 25
 
 # initialize variables for loop

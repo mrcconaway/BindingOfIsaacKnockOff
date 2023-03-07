@@ -52,3 +52,28 @@ def respawn_bubbles(player_pos):
     return bubbles_health
 
 
+
+def health_bar(entity, entity_pos, entity_current_health, entity_max_health):
+    height_above_player = 0.5
+    health_fraction     = round(entity_current_health / entity_max_health, 3)
+    inflate_bar_size_by = 1 # this kind of looks funky when it's != 1
+    health_bar_background = pygame.Rect(
+                                        entity_pos[0],
+                                        entity_pos[1] - height_above_player * entity.height,
+                                        inflate_bar_size_by * entity.width,
+                                        10
+                                        )
+    health_bar_foreground = pygame.Rect(
+                                        entity_pos[0],
+                                        entity_pos[1] - height_above_player * entity.height,
+                                        inflate_bar_size_by * health_fraction * entity.width,
+                                        10
+                                        )
+
+    pygame.draw.rect(essential_global_variables.screen, 
+                     essential_global_variables.WHITE, 
+                     health_bar_background)
+    pygame.draw.rect(essential_global_variables.screen, 
+                     essential_global_variables.RED, 
+                     health_bar_foreground)
+

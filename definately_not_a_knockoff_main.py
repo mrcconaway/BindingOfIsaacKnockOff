@@ -128,8 +128,6 @@ while the_game_is_running:
     if total_num_of_ticks > (bubbles_hit_tick + BUBBLES_COOLDOWN):
         for b in all_of_the_bullets:
             if pygame.Rect.colliderect(bubbles_rectangle, b[0]):
-                # respawn_bubbles(player_pos)
-                # times_bubbles_killed += 1
                 bubbles_health -= bullet_damage
                 all_of_the_bullets.remove(b)
 
@@ -137,9 +135,7 @@ while the_game_is_running:
 
     for this_laser in all_of_the_lasers:
         if pygame.Rect.colliderect(bubbles_rectangle, this_laser):
-            bubbles_health -= bullet_damage
-            # respawn_bubbles(player_pos)
-            # times_bubbles_killed += 1
+            bubbles_health -= laser_damage
     all_of_the_lasers = []
 
 
@@ -495,10 +491,14 @@ while the_game_is_running:
     for this_laser in all_of_the_lasers:
         pygame.draw.rect(screen, RED, this_laser)
     
+    # handle bullet hits with entities and health bars:
     if (player_hit_tick + red_box_cooldown  >= total_num_of_ticks) and (total_num_of_ticks > red_box_cooldown):
         pygame.draw.rect(screen, RED,  player_rectangle )
     if (bubbles_hit_tick + red_box_cooldown >= total_num_of_ticks) and (total_num_of_ticks > red_box_cooldown):
         pygame.draw.rect(screen, RED, bubbles_rectangle)
+    health_bar(player_rectangle , player_pos , player_health , default_player_health )
+    health_bar(bubbles_rectangle, bubbles_pos, bubbles_health, default_bubbles_health)
+
     
     pygame.display.update()
 
