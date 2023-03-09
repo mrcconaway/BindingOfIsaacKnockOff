@@ -4,8 +4,8 @@ import random
 import essential_global_variables
 
 
-POWER_UP_FREQUENCY     = 1 * essential_global_variables.FPS
-POWER_UP_INITIAL_WAIT  = 1 * essential_global_variables.FPS
+POWER_UP_FREQUENCY     = 3 * essential_global_variables.FPS
+POWER_UP_INITIAL_WAIT  = 5 * essential_global_variables.FPS
 PLAYER_IMMUNITY_TIME   = 1 * essential_global_variables.FPS
 POWER_UP_DURATION      = 5 * essential_global_variables.FPS
 POWER_UP_TYPES         = ["shield", "bullet_speed", "player_speed", "laser_beam", "triple_shot"]
