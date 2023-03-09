@@ -1,10 +1,8 @@
-1) Make a main.py
 2) Look into pygmes
     * Make a Square box
 3) use sprites for hit detenction instead of summoning endless rectangles
 
 other stuff:
-- health & health bars
 - rooms and how they spawn
 - barriers (functionally gaps and walls can be the same but visually gaps/holes and walls want to look different)
 - pathing for enemies
