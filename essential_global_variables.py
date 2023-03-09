@@ -36,16 +36,24 @@ bullet_damage  = 10
 laser_damage   = 2
 bubbles_damage = 25
 
+# all_of_the_bullets will store each bullet as a list of length 2 in the format:
+#          all_of_the_bullets = [ [bullet_rect_object, "bullet_direction"] ]
+# example: all_of_the_bullets = [ [bullet_rect, "E"], [bullet_rect, "NW"], [bullet_rect, "SE"], [bullet_rect, "S"] ]
+
+all_of_the_bullets    = []
+all_of_the_lasers     = []
+
 # initialize variables for loop
-player_shields       = 0
-bubbles_hit_tick     = 0
-player_hit_tick      = 0
-times_bubbles_killed = 0
-total_num_of_ticks   = 0
-the_game_is_running  = True
-bubbles_health       = default_bubbles_health
-player_health        = default_player_health
-red_box_cooldown     = 2  # amount of ticks that an entity till flash red once hit
+player_shields        = 0
+bubbles_hit_tick      = 0
+player_hit_tick       = 0
+times_bubbles_killed  = 0
+total_num_of_ticks    = 0
+the_game_is_running   = True
+bubbles_health        = default_bubbles_health
+player_health         = default_player_health
+red_box_cooldown      = 2  # amount of ticks that an entity till flash red once hit
+bubbles_is_stuck_flag = 0
 
 previous_player_pos  = [player_pos[0] , player_pos[1] ]
 previous_bubbles_pos = [bubbles_pos[0], bubbles_pos[1]]

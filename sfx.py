@@ -19,7 +19,15 @@ def triple_shooty(samplename='laser_lomg_dry.wav'):
 
 def shooty(sample):
 	sample.play()
-	sample.set_volume(0.8)
+	sample.set_volume(0.05)
 	return
+
+### Steven's sound corner
+
+pygame.mixer.init()
+shoot_sound_1 = get_shooty()
+shoot_sound_2 = triple_shooty()
+
+###
 
 	
