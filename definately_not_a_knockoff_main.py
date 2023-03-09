@@ -23,6 +23,8 @@ import sfx
 print("\n"*5)  # this is a spacer to make it easier to troubleshoot error messages
 TROUBLESHOOTING = False  # determines if print statements will occur after set amount of frames
 
+bouncy_bullets = False
+
 all_of_the_walls = []
 def build_wall(wall_x, wall_y, wall_LENGTH, wall_HEIGHT):
     if wall_LENGTH <= PLAYER_WIDTH or wall_HEIGHT <= PLAYER_HEIGHT:
@@ -91,8 +93,6 @@ def place_rock(rock_x, rock_y, rock_LENGTH, rock_HEIGHT, breakable: bool):
 
 
 
-player_backup_pos  = []
-bubbles_backup_pos = []
 
 ### Steven's sound corner
 
@@ -106,8 +106,6 @@ shoot_sound_2 = sfx.triple_shooty()
 
 while the_game_is_running:
     bullet_shotQ           = False
-    # player_out_of_bounds_x = False
-    # player_out_of_bounds_y = False
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -124,6 +122,32 @@ while the_game_is_running:
     if pressed_keys[pygame.K_ESCAPE]:
         the_game_is_running = False
     
+    for this_bullet in all_of_the_bullets:
+        if inside_wall([this_bullet[0].centerx, this_bullet[0].centery], this_bullet[0].width, this_bullet[0].height):
+            if bouncy_bullets:
+                this_bullet_direction_index = VALID_SHOT_DIRECTIONS.index(this_bullet[1])
+                this_bullet_index           = all_of_the_bullets.index(this_bullet)
+                # all_of_the_bullets[ all_of_the_bullets.index(this_bullet) ][1] = VALID_SHOT_DIRECTIONS[(this_bullet_direction_index + 4)%8]
+                
+                # test for directly horizontal/vertical collisions first
+                if inside_wall(this_bullet[0].midleft, BULLET_SIZE, BULLET_SIZE) or inside_wall(this_bullet[0].midright, BULLET_SIZE, BULLET_SIZE) or inside_wall(this_bullet[0].midtop, BULLET_SIZE, BULLET_SIZE) or inside_wall(this_bullet[0].midbottom, BULLET_SIZE, BULLET_SIZE):
+                    all_of_the_bullets[ all_of_the_bullets.index(this_bullet) ][1] = VALID_SHOT_DIRECTIONS[(this_bullet_direction_index + 4)%8 ]
+                # then test for diagonal nonsense
+                if x_inside_wall(this_bullet[0].topleft, BULLET_SIZE):
+                    if this_bullet[1] == "NW":
+                        all_of_the_bullets[this_bullet_index][1] = "NE"
+
+            else:
+                all_of_the_bullets.remove(this_bullet)
+
+    # # hitting bubbles with bullet collisions
+    # if total_num_of_ticks > (bubbles_hit_tick + BUBBLES_COOLDOWN):
+    #     for b in range(len(all_of_the_bullets)):
+    #         if pygame.Rect.colliderect(bubbles_rectangle, all_of_the_bullets[b][0]):
+    #             bubbles_health -= bullet_damage
+    #             all_of_the_bullets.remove(all_of_the_bullets[b])
+
+    #             bubbles_hit_tick = total_num_of_ticks
     # hitting bubbles with bullet collisions
     if total_num_of_ticks > (bubbles_hit_tick + BUBBLES_COOLDOWN):
         for b in all_of_the_bullets:
@@ -135,7 +159,8 @@ while the_game_is_running:
 
     for this_laser in all_of_the_lasers:
         if pygame.Rect.colliderect(bubbles_rectangle, this_laser):
-            bubbles_health -= laser_damage
+            if bubbles_health > 0:
+                bubbles_health -= laser_damage
     all_of_the_lasers = []
 
 
@@ -157,13 +182,13 @@ while the_game_is_running:
     # power up collisions
     for this_power_up in all_of_the_power_ups:
         if pygame.Rect.colliderect(this_power_up[0], player_rectangle):
-            print("power up collected!")
+            # print("power up collected!")
             if this_power_up[1] == "shield":
                 player_shields += 1
                 print("shields: "+ str(player_shields))
             if this_power_up[1] == "bullet_speed":
                 bullet_boost += 1
-                print("BULLET_BOOST ")
+                # print("BULLET_BOOST ")
                 if (BULLET_COOLDOWN / bullet_boost) <= 1:
                     print("bullet speed maxed out!")
                     try:
@@ -172,13 +197,13 @@ while the_game_is_running:
                         print("bullet speed already removed")
             if this_power_up[1] == "player_speed":
                 player_speed_variable += 50
-                print("player speed up")
+                # print("player speed up")
             if this_power_up[1] == "laser_beam":
                 timed_laser_tick = total_num_of_ticks
-                print("lasers!")
+                # print("lasers!")
             if this_power_up[1] == "triple_shot":
                 triple_shot_tick = total_num_of_ticks
-                print("triple shot!")
+                # print("triple shot!")
             
             all_of_the_power_ups.remove(this_power_up)
     
@@ -191,27 +216,15 @@ while the_game_is_running:
         correct_speed = True
     # end jank
     adjust_player_speed_by = (correct_speed * SPEED_CORRECTION + 1*(not correct_speed)) * (PLAYER_SPEED + player_speed_variable) // dt
-    # if (player_pos[0] < 0):
-    #     player_out_of_bounds_x = True
-    #     player_pos[0] = 1
-    # if (player_pos[0] > WIDTH - pygame.Surface.get_width(player)):
-    #     player_out_of_bounds_x = True
-    #     player_pos[0] = WIDTH - pygame.Surface.get_width(player) - 1
-    # if (player_pos[1] < 0):
-    #     player_out_of_bounds_y = True
-    #     player_pos[1] = 1
-    # if (player_pos[1] > HEIGHT - pygame.Surface.get_height(player)):
-    #     player_out_of_bounds_y = True
-    #     player_pos[1] = HEIGHT - pygame.Surface.get_height(player) - 1
     player_test_position = [player_pos[0], player_pos[1]]
     if pressed_keys[pygame.K_w]:
-        player_test_position[1] = player_pos[1] - adjust_player_speed_by# * (1 - player_out_of_bounds_y))
+        player_test_position[1] = player_pos[1] - adjust_player_speed_by
     if pressed_keys[pygame.K_s]:
-        player_test_position[1] = player_pos[1] + adjust_player_speed_by# * (1 - player_out_of_bounds_y))
+        player_test_position[1] = player_pos[1] + adjust_player_speed_by
     if pressed_keys[pygame.K_a]:
-        player_test_position[0] = player_pos[0] - adjust_player_speed_by# * (1 - player_out_of_bounds_x))
+        player_test_position[0] = player_pos[0] - adjust_player_speed_by
     if pressed_keys[pygame.K_d]:
-        player_test_position[0] = player_pos[0] + adjust_player_speed_by# * (1 - player_out_of_bounds_x))
+        player_test_position[0] = player_pos[0] + adjust_player_speed_by
     
     
     if inside_wall(player_pos, PLAYER_WIDTH, PLAYER_HEIGHT):
@@ -279,7 +292,7 @@ while the_game_is_running:
                 direction    = "W"
                 bullet_shotQ = True
             
-            
+            # see if a laser is being shot
             if (timed_laser_tick != 0) and ((timed_laser_tick + POWER_UP_DURATION) > total_num_of_ticks):
                 if (triple_shot_tick != 0) and ((triple_shot_tick + POWER_UP_DURATION) > total_num_of_ticks):
                     if direction in VALID_LASER_DIRECTIONS:
@@ -297,6 +310,7 @@ while the_game_is_running:
                     if direction in VALID_LASER_DIRECTIONS:
                         all_of_the_lasers.append(generate_laser(player, player_pos, direction))
                     sfx.shooty(shoot_sound_2)
+            # if a laser is not being shot, then shoot bullets instead
             elif bullet_shotQ:
                 bullet_shot_at = total_num_of_ticks
                 if (triple_shot_tick != 0) and ((triple_shot_tick + POWER_UP_DURATION) > total_num_of_ticks):
@@ -319,13 +333,6 @@ while the_game_is_running:
                     sfx.shooty(shoot_sound_2)
             
 
-
-
-    # stuff for bubbles
-    # the "< 5" bit here was picked arbitrarily because it seemed to work to get rid of bubble's jitteryness
-    # if (abs(bubbles_pos[0] - player_pos[0]) < 5) and (abs(bubbles_pos[1] - player_pos[1]) < 5):
-    #     bubbles_pos[0] = player_pos[0]
-    #     bubbles_pos[1] = player_pos[1]
     adjust_bubbles_x = 0
     adjust_bubbles_y = 0
     if bubbles_pos[0] < player_pos[0] - pygame.Surface.get_height(player) / pygame.Surface.get_height(bubbles) :
@@ -339,6 +346,7 @@ while the_game_is_running:
     
     bubbles_test_position = [bubbles_pos[0], bubbles_pos[1]]
     if inside_wall(bubbles_pos, BUBBLES_WIDTH, BUBBLES_HEIGHT):
+        bubbles_is_stuck_flag += 1
         # print("fixing bubbles position")
         """
         we need to determine which dimension (x or y) is more in the wall and alter only that one!
@@ -364,29 +372,20 @@ while the_game_is_running:
                              np.abs(determine_things_y1 - bubbles_test_position[1]), 
                              np.abs(determine_things_y2 - bubbles_test_position[1])]
         thing_to_change = list_of_the_tests.index( np.min(list_of_the_tests) )
-        # print(list_of_the_tests)
         if thing_to_change == 0:
-            # print("moving bubbles RIGHT to remove from wall")
             bubbles_pos[0] = determine_things_x1 - kick_by
         if thing_to_change == 1:
-            # print("moving bubbles LEFT to remove from wall")
             bubbles_pos[0] = determine_things_x2 + kick_by
         if thing_to_change == 2:
-            # print("moving bubbles DOWN to remove from wall")
             bubbles_pos[1] = determine_things_y1 + kick_by
         if thing_to_change == 3:
-            # print("moving bubbles UP to remove from wall")
             bubbles_pos[1] = determine_things_y2 - kick_by
     else:
+        bubbles_is_stuck_flag = 0
         bubbles_pos[0] = bubbles_test_position[0]
         bubbles_pos[1] = bubbles_test_position[1]
 
-    
-    # if inside_wall(player_pos,  PLAYER_WIDTH,  PLAYER_HEIGHT ):
-    #     print("player inside wall")
-    # if inside_wall(bubbles_pos, BUBBLES_WIDTH, BUBBLES_HEIGHT):
-    #     print("bubbles inside wall")
-    
+
     if (adjust_bubbles_x != 0) and (adjust_bubbles_y != 0):
         bubbles_pos[0] += SPEED_CORRECTION * adjust_bubbles_x // 1
         bubbles_pos[1] += SPEED_CORRECTION * adjust_bubbles_y // 1
@@ -402,13 +401,13 @@ while the_game_is_running:
             generated_power_up_type = POWER_UP_TYPES[np.random.randint( len(POWER_UP_TYPES) )]
             generated_power_up      = generate_power_up()
             while inside_wall([generated_power_up.centerx, generated_power_up.centery], POWER_UP_WIDTH, POWER_UP_HEIGHT):
-                print("trying to generate power up")
+                # print("trying to generate power up")
                 generated_power_up      = generate_power_up()
             all_of_the_power_ups.append([
                                         generated_power_up,
                                         generated_power_up_type
                                         ])
-            print("power_up = "+ str(generated_power_up_type))
+            # print("power_up = "+ str(generated_power_up_type))
 
     # try and fix player_rect and bubbles_rect here
     if previous_player_pos == player_pos:
@@ -461,31 +460,55 @@ while the_game_is_running:
     #wall stuff here
     for wall in all_of_the_walls:
         pygame.draw.rect(screen, BLUE, wall)
-
-    for this_bullet in all_of_the_bullets:
-        # if (this_bullet[0].centerx <= 0) or (this_bullet[0].centerx >= WIDTH) or (this_bullet[0].centery <= 0) or (this_bullet[0].centery >= HEIGHT):
-        #     all_of_the_bullets.remove(this_bullet)
-        if inside_wall([this_bullet[0].centerx, this_bullet[0].centery], this_bullet[0].width, this_bullet[0].height):
-            all_of_the_bullets.remove(this_bullet)
     
     for i in range(len(all_of_the_bullets)):
-        if all_of_the_bullets[i][1] == "N":
-            all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0], 0, -BULLET_SPEED / dt)
-        if all_of_the_bullets[i][1] == "S":
-            all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0], 0,  BULLET_SPEED / dt)
-        if all_of_the_bullets[i][1] == "E":
-            all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],  BULLET_SPEED / dt, 0)
-        if all_of_the_bullets[i][1] == "W":
-            all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0], -BULLET_SPEED / dt, 0)
-        if all_of_the_bullets[i][1] == "NW":
-            all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0], -SPEED_CORRECTION * BULLET_SPEED / dt, -SPEED_CORRECTION * BULLET_SPEED / dt)
-        if all_of_the_bullets[i][1] == "NE":
-            all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],  SPEED_CORRECTION * BULLET_SPEED / dt, -SPEED_CORRECTION * BULLET_SPEED / dt)
-        if all_of_the_bullets[i][1] == "SW":
-            all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0], -SPEED_CORRECTION * BULLET_SPEED / dt,  SPEED_CORRECTION * BULLET_SPEED / dt)
-        if all_of_the_bullets[i][1] == "SE":
-            all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],  SPEED_CORRECTION * BULLET_SPEED / dt,  SPEED_CORRECTION * BULLET_SPEED / dt)
-        
+
+        if len(all_of_the_bullets[i]) == 2:
+            # the (2 * random.random() - 1) is stolen from some clever fellow on stack overflow. Its purpose is to generate a random float between -1 and 1
+            x_bullet_variability = bullet_variability * (2 * random.random() - 1)
+            y_bullet_variability = bullet_variability * (2 * random.random() - 1)
+
+            if all_of_the_bullets[i][1] == "N":
+                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],                            x_bullet_variability * BULLET_SPEED / dt,                                                  -BULLET_SPEED / dt)
+            if all_of_the_bullets[i][1] == "S":
+                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],                            x_bullet_variability * BULLET_SPEED / dt,                                                   BULLET_SPEED / dt)
+            if all_of_the_bullets[i][1] == "E":
+                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],                                                   BULLET_SPEED / dt,                            y_bullet_variability * BULLET_SPEED / dt)
+            if all_of_the_bullets[i][1] == "W":
+                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],                                                 - BULLET_SPEED / dt,                            y_bullet_variability * BULLET_SPEED / dt)
+            if all_of_the_bullets[i][1] == "NW":
+                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0], - SPEED_CORRECTION * BULLET_SPEED * (1 + x_bullet_variability) / dt, - SPEED_CORRECTION * BULLET_SPEED * (1 + y_bullet_variability) / dt)
+            if all_of_the_bullets[i][1] == "NE":
+                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],   SPEED_CORRECTION * BULLET_SPEED * (1 + x_bullet_variability) / dt, - SPEED_CORRECTION * BULLET_SPEED * (1 + y_bullet_variability) / dt)
+            if all_of_the_bullets[i][1] == "SW":
+                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0], - SPEED_CORRECTION * BULLET_SPEED * (1 + x_bullet_variability) / dt,   SPEED_CORRECTION * BULLET_SPEED * (1 + y_bullet_variability) / dt)
+            if all_of_the_bullets[i][1] == "SE":
+                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],   SPEED_CORRECTION * BULLET_SPEED * (1 + x_bullet_variability) / dt,   SPEED_CORRECTION * BULLET_SPEED * (1 + y_bullet_variability) / dt)
+
+            all_of_the_bullets[i].append(x_bullet_variability)
+            all_of_the_bullets[i].append(y_bullet_variability)
+        else:
+            x_bullet_variability = all_of_the_bullets[i][2]
+            y_bullet_variability = all_of_the_bullets[i][3]
+
+            if all_of_the_bullets[i][1] == "N":
+                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],                            x_bullet_variability * BULLET_SPEED / dt,                                                  -BULLET_SPEED / dt)
+            if all_of_the_bullets[i][1] == "S":
+                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],                            x_bullet_variability * BULLET_SPEED / dt,                                                   BULLET_SPEED / dt)
+            if all_of_the_bullets[i][1] == "E":
+                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],                                                   BULLET_SPEED / dt,                            y_bullet_variability * BULLET_SPEED / dt)
+            if all_of_the_bullets[i][1] == "W":
+                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],                                                 - BULLET_SPEED / dt,                            y_bullet_variability * BULLET_SPEED / dt)
+            if all_of_the_bullets[i][1] == "NW":
+                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0], - SPEED_CORRECTION * BULLET_SPEED * (1 + x_bullet_variability) / dt, - SPEED_CORRECTION * BULLET_SPEED * (1 + y_bullet_variability) / dt)
+            if all_of_the_bullets[i][1] == "NE":
+                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],   SPEED_CORRECTION * BULLET_SPEED * (1 + x_bullet_variability) / dt, - SPEED_CORRECTION * BULLET_SPEED * (1 + y_bullet_variability) / dt)
+            if all_of_the_bullets[i][1] == "SW":
+                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0], - SPEED_CORRECTION * BULLET_SPEED * (1 + x_bullet_variability) / dt,   SPEED_CORRECTION * BULLET_SPEED * (1 + y_bullet_variability) / dt)
+            if all_of_the_bullets[i][1] == "SE":
+                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],   SPEED_CORRECTION * BULLET_SPEED * (1 + x_bullet_variability) / dt,   SPEED_CORRECTION * BULLET_SPEED * (1 + y_bullet_variability) / dt)
+
+
         pygame.draw.rect(screen, RED, all_of_the_bullets[i][0])
     
     for this_laser in all_of_the_lasers:
