@@ -461,56 +461,8 @@ while the_game_is_running:
     for wall in all_of_the_walls:
         pygame.draw.rect(screen, BLUE, wall)
     
-    for i in range(len(all_of_the_bullets)):
+    move_bullets(all_of_the_bullets)
 
-        if len(all_of_the_bullets[i]) == 2:
-            # the (2 * random.random() - 1) is stolen from some clever fellow on stack overflow. Its purpose is to generate a random float between -1 and 1
-            x_bullet_variability = bullet_variability * (2 * random.random() - 1)
-            y_bullet_variability = bullet_variability * (2 * random.random() - 1)
-
-            if all_of_the_bullets[i][1] == "N":
-                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],                            x_bullet_variability * BULLET_SPEED / dt,                                                  -BULLET_SPEED / dt)
-            if all_of_the_bullets[i][1] == "S":
-                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],                            x_bullet_variability * BULLET_SPEED / dt,                                                   BULLET_SPEED / dt)
-            if all_of_the_bullets[i][1] == "E":
-                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],                                                   BULLET_SPEED / dt,                            y_bullet_variability * BULLET_SPEED / dt)
-            if all_of_the_bullets[i][1] == "W":
-                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],                                                 - BULLET_SPEED / dt,                            y_bullet_variability * BULLET_SPEED / dt)
-            if all_of_the_bullets[i][1] == "NW":
-                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0], - SPEED_CORRECTION * BULLET_SPEED * (1 + x_bullet_variability) / dt, - SPEED_CORRECTION * BULLET_SPEED * (1 + y_bullet_variability) / dt)
-            if all_of_the_bullets[i][1] == "NE":
-                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],   SPEED_CORRECTION * BULLET_SPEED * (1 + x_bullet_variability) / dt, - SPEED_CORRECTION * BULLET_SPEED * (1 + y_bullet_variability) / dt)
-            if all_of_the_bullets[i][1] == "SW":
-                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0], - SPEED_CORRECTION * BULLET_SPEED * (1 + x_bullet_variability) / dt,   SPEED_CORRECTION * BULLET_SPEED * (1 + y_bullet_variability) / dt)
-            if all_of_the_bullets[i][1] == "SE":
-                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],   SPEED_CORRECTION * BULLET_SPEED * (1 + x_bullet_variability) / dt,   SPEED_CORRECTION * BULLET_SPEED * (1 + y_bullet_variability) / dt)
-
-            all_of_the_bullets[i].append(x_bullet_variability)
-            all_of_the_bullets[i].append(y_bullet_variability)
-        else:
-            x_bullet_variability = all_of_the_bullets[i][2]
-            y_bullet_variability = all_of_the_bullets[i][3]
-
-            if all_of_the_bullets[i][1] == "N":
-                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],                            x_bullet_variability * BULLET_SPEED / dt,                                                  -BULLET_SPEED / dt)
-            if all_of_the_bullets[i][1] == "S":
-                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],                            x_bullet_variability * BULLET_SPEED / dt,                                                   BULLET_SPEED / dt)
-            if all_of_the_bullets[i][1] == "E":
-                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],                                                   BULLET_SPEED / dt,                            y_bullet_variability * BULLET_SPEED / dt)
-            if all_of_the_bullets[i][1] == "W":
-                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],                                                 - BULLET_SPEED / dt,                            y_bullet_variability * BULLET_SPEED / dt)
-            if all_of_the_bullets[i][1] == "NW":
-                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0], - SPEED_CORRECTION * BULLET_SPEED * (1 + x_bullet_variability) / dt, - SPEED_CORRECTION * BULLET_SPEED * (1 + y_bullet_variability) / dt)
-            if all_of_the_bullets[i][1] == "NE":
-                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],   SPEED_CORRECTION * BULLET_SPEED * (1 + x_bullet_variability) / dt, - SPEED_CORRECTION * BULLET_SPEED * (1 + y_bullet_variability) / dt)
-            if all_of_the_bullets[i][1] == "SW":
-                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0], - SPEED_CORRECTION * BULLET_SPEED * (1 + x_bullet_variability) / dt,   SPEED_CORRECTION * BULLET_SPEED * (1 + y_bullet_variability) / dt)
-            if all_of_the_bullets[i][1] == "SE":
-                all_of_the_bullets[i][0] = pygame.Rect.move(all_of_the_bullets[i][0],   SPEED_CORRECTION * BULLET_SPEED * (1 + x_bullet_variability) / dt,   SPEED_CORRECTION * BULLET_SPEED * (1 + y_bullet_variability) / dt)
-
-
-        pygame.draw.rect(screen, RED, all_of_the_bullets[i][0])
-    
     for this_laser in all_of_the_lasers:
         pygame.draw.rect(screen, RED, this_laser)
     
