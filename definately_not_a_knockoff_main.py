@@ -252,7 +252,6 @@ while the_game_is_running:
     # try and fix player_rect and bubbles_rect here
     player_pos = adjust_for_camera(player_pos)
     if previous_player_pos == player_pos:
-        print("\nnot moving")
         player_rectangle = pygame.Rect.move(player_rectangle, 0, 0)
     else:
         player_rectangle  = pygame.Rect.move(
