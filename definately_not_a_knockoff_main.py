@@ -35,9 +35,11 @@ camera     = pygame.math.Vector2((0, 0))
 # build_wall(WIDTH,      0,    51, HEIGHT)
 
 # just some walls thrown in to make the area a little more interesting
-build_wall(WIDTH * 1/4, HEIGHT * 3/7,      50 + 1, HEIGHT * 2/7)
-build_wall(WIDTH * 3/7, HEIGHT * 1/4, WIDTH * 2/7,       50 + 1)
-build_wall(        500,          500,         150,          150)
+# build_wall(WIDTH * 1/4, HEIGHT * 3/7,      50 + 1, HEIGHT * 2/7)
+# build_wall(WIDTH * 3/7, HEIGHT * 1/4, WIDTH * 2/7,       50 + 1)
+# build_wall(        500,          500,         150,          150)
+
+map_walls_from_matrix(test_matrix)
 
 
 camera_pos = [player_pos[0], player_pos[1]]

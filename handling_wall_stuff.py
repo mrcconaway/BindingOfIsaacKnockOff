@@ -29,7 +29,7 @@ def inside_wall(position, width, height):
 def x_inside_wall(position_x, width):
     for wall in all_of_the_walls:
             if (
-                (position_x[0] < (wall.centerx + wall.width/2 )) and (position_x[0] > (wall.centerx - wall.width/2 ))    or   (position_x[0] + width  < (wall.centerx + wall.width/2 )) and (position_x[0] + width  > (wall.centerx - wall.width/2 ))
+                (position_x[0] <= (wall.centerx + wall.width/2 )) and (position_x[0] >= (wall.centerx - wall.width/2 ))    or   (position_x[0] + width  <= (wall.centerx + wall.width/2 )) and (position_x[0] + width  >= (wall.centerx - wall.width/2 ))
                 ):
                 return True
     return False
@@ -37,10 +37,50 @@ def x_inside_wall(position_x, width):
 def y_inside_wall(position_y, height):
     for wall in all_of_the_walls:
             if (
-                (position_y[1] < (wall.centery + wall.height/2)) and (position_y[1] > (wall.centery - wall.height/2))    or   (position_y[1] + height < (wall.centery + wall.height/2)) and (position_y[1] + height > (wall.centery - wall.height/2))
+                (position_y[1] <= (wall.centery + wall.height/2)) and (position_y[1] >= (wall.centery - wall.height/2))    or   (position_y[1] + height <= (wall.centery + wall.height/2)) and (position_y[1] + height >= (wall.centery - wall.height/2))
                 ):
                 return True
     return False
+
+
+test_matrix = [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1, 1],
+               [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+               [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+               [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+               [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+               [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+               [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+               [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+               [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+               [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+               [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+               [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+               [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+               [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+               [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+               [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+               [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+               [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+               [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+               [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1, 1]]
+
+def map_walls_from_matrix(wall_matrix):
+    wall_size = 100
+    x_coord = 0
+    y_coord = 0
+    for i in range(len(wall_matrix)):
+        for j in range(len(wall_matrix[i])):
+            if wall_matrix[i][j]:
+                build_wall(x_coord, y_coord, wall_size, wall_size)
+                # print("building wall at matrix location: "+ str(x_coord/wall_size) +", "+ str(y_coord/wall_size))
+            x_coord += wall_size
+        x_coord = 0
+        y_coord += wall_size
+    
+
+
+
+
 
 
 all_of_the_rocks = []
