@@ -19,7 +19,7 @@ def triple_shooty(samplename='laser_lomg_dry.wav'):
 
 def shooty(sample):
 	sample.play()
-	sample.set_volume(0.05)
+	sample.set_volume(0.8)
 	return
 
 ### Steven's sound corner

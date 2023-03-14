@@ -19,27 +19,30 @@ from handling_power_up_stuff    import *
 from handling_bullet_stuff      import *
 from handling_wall_stuff        import *
 from sfx                        import *
-# import sfx
 
 
 print("\n"*5)  # this is a spacer to make it easier to troubleshoot error messages
 TROUBLESHOOTING = False  # determines if print statements will occur after set amount of frames
-bouncy_bullets = False
+bouncy_bullets  = False
+
+camera     = pygame.math.Vector2((0, 0))
 
 
 # bound the playable space:
-build_wall(    0,    -51, WIDTH,     51)
-build_wall(    0, HEIGHT, WIDTH,     51)
-build_wall(  -51,      0,    51, HEIGHT)
-build_wall(WIDTH,      0,    51, HEIGHT)
+# build_wall(    0,    -51, WIDTH,     51)
+# build_wall(    0, HEIGHT, WIDTH,     51)
+# build_wall(  -51,      0,    51, HEIGHT)
+# build_wall(WIDTH,      0,    51, HEIGHT)
 
 # just some walls thrown in to make the area a little more interesting
-build_wall(WIDTH * 1/4,  HEIGHT * 3/7,  50 + 1    , HEIGHT * 2/7)
-build_wall(WIDTH * 3/7,  HEIGHT * 1/4, WIDTH * 2/7, 50 + 1)
-build_wall(500, 500, 150, 150)
+build_wall(WIDTH * 1/4, HEIGHT * 3/7,      50 + 1, HEIGHT * 2/7)
+build_wall(WIDTH * 3/7, HEIGHT * 1/4, WIDTH * 2/7,       50 + 1)
+build_wall(        500,          500,         150,          150)
 
 
-
+camera_pos = [player_pos[0], player_pos[1]]
+def adjust_for_camera(position):
+    return [position[0] - camera_pos[0], position[1] - camera_pos[1]]
 
 
 # ### Steven's sound corner
@@ -55,11 +58,20 @@ while the_game_is_running:
     if pressed_keys[pygame.K_ESCAPE]:
         the_game_is_running = False
     
+    camera_smoothness = 20
+    camera_pos = [player_pos[0] - (WIDTH  / 2), 
+                  player_pos[1] - (HEIGHT / 2)
+                  ]
+    camera.x   = camera_pos[0] / camera_smoothness
+    camera.y   = camera_pos[1] / camera_smoothness
+    # pos_on_the_screen = (player_pos[0] - camera_pos[0], player_pos[1] - camera_pos[1])
+    
     the_current_game_state = [ pressed_keys, 
-                              [player_pos, bubbles_pos], 
+                              [player_pos, bubbles_pos, camera_pos], 
                               [player_health, bubbles_health], 
                               [total_num_of_ticks, player_hit_tick, bubbles_hit_tick, bullet_shot_at, triple_shot_tick, timed_laser_tick],
-                              [all_of_the_bullets, all_of_the_lasers]
+                              [all_of_the_bullets, all_of_the_lasers],
+                              player_speed_variable
                               ]
 
     for event in pygame.event.get():
@@ -153,6 +165,7 @@ while the_game_is_running:
     
     player_pos = move_player(the_current_game_state)
 
+
     updates_from_shoot_bullet = shoot_bullet(the_current_game_state)
     bullet_shot_at            = updates_from_shoot_bullet[0]
     all_of_the_lasers         = updates_from_shoot_bullet[1]
@@ -217,6 +230,8 @@ while the_game_is_running:
     else:
         bubbles_pos[0] += adjust_bubbles_x
         bubbles_pos[1] += adjust_bubbles_y
+    bubbles_pos[0] -= camera_pos[0]
+    bubbles_pos[1] -= camera_pos[1]
 
     
 
@@ -235,7 +250,9 @@ while the_game_is_running:
             # print("power_up = "+ str(generated_power_up_type))
 
     # try and fix player_rect and bubbles_rect here
+    player_pos = adjust_for_camera(player_pos)
     if previous_player_pos == player_pos:
+        print("\nnot moving")
         player_rectangle = pygame.Rect.move(player_rectangle, 0, 0)
     else:
         player_rectangle  = pygame.Rect.move(
@@ -254,39 +271,42 @@ while the_game_is_running:
     # screen stuff
     screen.fill(BLACK)
     screen.blit(player, player_pos)
+    
+    # pygame.draw.rect(screen, GREEN,  player_rectangle )
+    # screen.blit(player, (player_pos[0] - camera_pos[0], player_pos[1] - camera_pos[1]))
+    # screen.blit(bubbles, adjust_for_camera(bubbles_pos))
     screen.blit(bubbles, bubbles_pos)
     for this_power_up in all_of_the_power_ups:
+        this_power_up[0].centerx -= camera_pos[0]
+        this_power_up[0].centery -= camera_pos[1]
         if this_power_up[1] == "bullet_speed":
             screen.blit(bullet_speed_icon, 
-                        [this_power_up[0].centerx, 
-                         this_power_up[0].centery]
+                        [this_power_up[0].centerx, this_power_up[0].centery]
                         )
         if this_power_up[1] == "shield":
             screen.blit(shield_icon, 
-                        [this_power_up[0].centerx, 
-                         this_power_up[0].centery]
+                        [this_power_up[0].centerx, this_power_up[0].centery]
                         )
         if this_power_up[1] == "player_speed":
             screen.blit(speed_boost_icon, 
-                        [this_power_up[0].centerx, 
-                         this_power_up[0].centery]
+                        [this_power_up[0].centerx, this_power_up[0].centery]
                         )
         if this_power_up[1] == "laser_beam":
             screen.blit(laser_beam_icon,
-                        [this_power_up[0].centerx, 
-                         this_power_up[0].centery]
+                        [this_power_up[0].centerx, this_power_up[0].centery]
                         )
         if this_power_up[1] == "triple_shot":
             screen.blit(triple_shot_icon,
-                        [this_power_up[0].centerx, 
-                         this_power_up[0].centery]
+                        [this_power_up[0].centerx, this_power_up[0].centery]
                         )
 
     #wall stuff here
     for wall in all_of_the_walls:
+        wall.x -= camera_pos[0]
+        wall.y -= camera_pos[1]
         pygame.draw.rect(screen, BLUE, wall)
     
-    move_bullets(all_of_the_bullets)
+    move_bullets(all_of_the_bullets, the_current_game_state)
 
     for this_laser in all_of_the_lasers:
         pygame.draw.rect(screen, RED, this_laser)
@@ -297,7 +317,7 @@ while the_game_is_running:
     if (bubbles_hit_tick + red_box_cooldown >= total_num_of_ticks) and (total_num_of_ticks > red_box_cooldown):
         pygame.draw.rect(screen, RED, bubbles_rectangle)
     health_bar(player_rectangle , player_pos , player_health , default_player_health )
-    health_bar(bubbles_rectangle, bubbles_pos, bubbles_health, default_bubbles_health)
+    health_bar(bubbles_rectangle, adjust_for_camera(bubbles_pos), bubbles_health, default_bubbles_health)
 
     
     pygame.display.update()

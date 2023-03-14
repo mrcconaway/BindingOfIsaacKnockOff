@@ -12,7 +12,7 @@ from sfx import *
 
 BULLET_SPEED          = 500
 BULLET_SIZE           = 15        # x y height of box of bullet
-BULLETS_PER_SECOND    = 3
+BULLETS_PER_SECOND    = 5
 bullet_boost          = 1
 BULLET_COOLDOWN       = FPS // BULLETS_PER_SECOND
 bullet_shot_at        = 0         # tracks when bullet is shot in terms of ticks
@@ -115,7 +115,8 @@ def shoot_bullet(the_current_game_state):
     
     return [bullet_shot_at, all_of_the_lasers]
 
-def move_bullets(bullet_list):
+def move_bullets(bullet_list, the_current_game_state):
+    camera_pos = the_current_game_state[1][2]
     for i in range(len(bullet_list)):
         if len(bullet_list[i]) == 2:
             # the (2 * random.random() - 1) is stolen from some clever fellow on stack overflow. Its purpose is to generate a random float between -1 and 1
@@ -162,7 +163,10 @@ def move_bullets(bullet_list):
             if bullet_list[i][1] == "SE":
                 bullet_list[i][0] = pygame.Rect.move(bullet_list[i][0],   SPEED_CORRECTION * BULLET_SPEED * (1 + x_bullet_variability) / dt,   SPEED_CORRECTION * BULLET_SPEED * (1 + y_bullet_variability) / dt)
     
-        pygame.draw.rect(essential_global_variables.screen, essential_global_variables.RED, all_of_the_bullets[i][0])
+        # pygame.draw.rect(essential_global_variables.screen, essential_global_variables.RED, all_of_the_bullets[i][0])
+        all_of_the_bullets[i][0].x -= camera_pos[0]
+        all_of_the_bullets[i][0].y -= camera_pos[1]
+        pygame.draw.rect(essential_global_variables.screen, essential_global_variables.RED, all_of_the_bullets[i][0] )
 
 
 laser_E           = []
