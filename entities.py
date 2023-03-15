@@ -12,7 +12,7 @@ from handling_wall_stuff import inside_wall
 player = pygame.image.load("resources/moon_50x50.png").convert()
 PLAYER_WIDTH          = pygame.Surface.get_width(player)
 PLAYER_HEIGHT         = pygame.Surface.get_height(player)
-PLAYER_SPEED          = 300
+PLAYER_SPEED          = 500
 player_speed_variable = 0
 player_rectangle      = pygame.Rect(
                                     essential_global_variables.player_pos[0],
@@ -99,11 +99,12 @@ bubbles_rectangle = pygame.Rect(
                                 )
 
 
-def respawn_bubbles(player_pos):
-    # copy/pasted from before
+def respawn_bubbles(player_pos, the_current_game_state):
+    playable_space = the_current_game_state[6]
+    # print(playable_space)
     # print("bubbles it hit")
-    respawnX = essential_global_variables.WIDTH  * random.random()
-    respawnY = essential_global_variables.HEIGHT * random.random()
+    respawnX = playable_space[1][0]  * random.random()
+    respawnY = playable_space[1][1] * random.random()
     # this should work, might need to fine tune the 
     radius = 6*pygame.Surface.get_width(player)
     while (np.sqrt( (respawnX - player_pos[0])**2 + (respawnY - player_pos[1])**2 ) < radius ):
