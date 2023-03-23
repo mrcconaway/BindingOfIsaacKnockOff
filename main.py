@@ -276,15 +276,23 @@ class bullet:
 
 bad_guys  = []
 player    = the_player()
-bubbles_1 = enemy_1(300, 300)
-bubbles_2 = enemy_1(600, 600)
+bubbles_1 = enemy_1(300, 400)
+bubbles_2 = enemy_1(700, 600)
 bubbles_3 = enemy_1(600,   0)
 bubbles_4 = enemy_1(  0, 600)
 bubbles_5 = enemy_1(200, 200)
+bubbles_6 = enemy_1(200, 600)
 
 # append all bad guys to the bad_guys list
-for i in range(1, 5+1):
-    eval("bad_guys.append(bubbles_"+ str(i) +")")
+i = 1
+running = True
+while running:
+    try:
+        eval("bad_guys.append(bubbles_"+ str(i) +")")
+    except:
+        running = False
+    i += 1
+
 
 
 print("\n"*5)
@@ -341,7 +349,6 @@ while the_game_is_running:
     pygame.time.delay(1000//FPS)
     total_num_of_ticks += 1
 
-    print(player.current_health)
     if player.current_health <= 0:
         the_game_is_running = False
 
