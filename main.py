@@ -34,7 +34,8 @@ class the_player:
         self.width           = 50
         self.height          = 50
         self.speed           = 300
-        self.health          = 100
+        self.max_health      = 100
+        self.current_health  = self.max_health
         self.bullets_per_sec = 6
         self.bullet_cooldown = FPS / self.bullets_per_sec
         self.icon            = pygame.image.load("pumpkin.png").convert()
@@ -102,7 +103,25 @@ class the_player:
 
     #       
     def paint(self):
-        return screen.blit(self.icon, [self.x, self.y])
+        height_above_player = 0.5
+        health_fraction     = round(self.current_health / self.max_health, 3)
+        inflate_bar_size_by = 1 # this kind of looks funky when it's != 1
+        health_bar_background = pygame.Rect(
+                                            self.x - (self.width - self.width * inflate_bar_size_by) * (1/4),
+                                            self.y - height_above_player * self.height,
+                                            inflate_bar_size_by * self.width,
+                                            10
+                                            )
+        health_bar_foreground = pygame.Rect(
+                                            self.x - (self.width - self.width * inflate_bar_size_by) * (1/4),
+                                            self.y - height_above_player * self.height,
+                                            inflate_bar_size_by * health_fraction * self.width,
+                                            10
+                                            )
+
+        pygame.draw.rect(screen, WHITE, health_bar_background)
+        pygame.draw.rect(screen, RED, health_bar_foreground)
+        screen.blit(self.icon, [self.x, self.y])
     #
     def draw_rect(self):
         return pygame.draw.rect(screen, WHITE, self.rect)
@@ -116,7 +135,8 @@ class enemy_1:
         self.width           = 50
         self.height          = 50
         self.speed           = 100
-        self.health          = 50
+        self.max_health      = 50
+        self.current_health  = self.max_health
         self.bullets_per_sec = 2
         self.bullet_cooldown = FPS / self.bullets_per_sec
         self.icon            = pygame.image.load("bubbles.png").convert()
@@ -177,13 +197,26 @@ class enemy_1:
             the_shot_bullet = bullet(self, theta)
             enemy_bullets.append(the_shot_bullet)
     #
-    def kill(self):
-        if self.health <= 0:
-            print("brb ima kms...")
-            del self
-    #
     def paint(self):
-        return screen.blit(self.icon, [self.x, self.y])
+        height_above_player = 0.3
+        health_fraction     = round(self.current_health / self.max_health, 3)
+        inflate_bar_size_by = 1 # this kind of looks funky when it's != 1
+        health_bar_background = pygame.Rect(
+                                            self.x - (self.width - self.width * inflate_bar_size_by) * (1/4),
+                                            self.y - height_above_player * self.height,
+                                            inflate_bar_size_by * self.width,
+                                            10
+                                            )
+        health_bar_foreground = pygame.Rect(
+                                            self.x - (self.width - self.width * inflate_bar_size_by) * (1/4),
+                                            self.y - height_above_player * self.height,
+                                            inflate_bar_size_by * health_fraction * self.width,
+                                            10
+                                            )
+
+        pygame.draw.rect(screen, WHITE, health_bar_background)
+        pygame.draw.rect(screen, GREEN, health_bar_foreground)
+        screen.blit(self.icon, [self.x, self.y])
     #
     def draw_rect(self):
         return pygame.draw.rect(screen, WHITE, self.rect)
@@ -249,11 +282,9 @@ bubbles_3 = enemy_1(600,   0)
 bubbles_4 = enemy_1(  0, 600)
 bubbles_5 = enemy_1(200, 200)
 
-bad_guys.append(bubbles_1)
-bad_guys.append(bubbles_2)
-bad_guys.append(bubbles_3)
-bad_guys.append(bubbles_4)
-bad_guys.append(bubbles_5)
+# append all bad guys to the bad_guys list
+for i in range(1, 5+1):
+    eval("bad_guys.append(bubbles_"+ str(i) +")")
 
 
 print("\n"*5)
@@ -275,15 +306,15 @@ while the_game_is_running:
     for this_bullet in friendly_bullets:
         for entity in bad_guys:
             if pygame.Rect.colliderect(entity.rect, this_bullet):
-                entity.health -= this_bullet.bullet_damage
+                entity.current_health -= this_bullet.bullet_damage
                 friendly_bullets.remove(this_bullet)
     for this_bullet in enemy_bullets:
         if pygame.Rect.colliderect(player.rect, this_bullet):
-            player.health -= this_bullet.bullet_damage
+            player.current_health -= this_bullet.bullet_damage
             enemy_bullets.remove(this_bullet)
  
     for bad_guy in bad_guys:
-        if bad_guy.health <= 0:
+        if bad_guy.current_health <= 0:
             bad_guys.remove(bad_guy)
 
     player.move()
@@ -310,8 +341,8 @@ while the_game_is_running:
     pygame.time.delay(1000//FPS)
     total_num_of_ticks += 1
 
-    print(player.health)
-    if player.health <= 0:
+    print(player.current_health)
+    if player.current_health <= 0:
         the_game_is_running = False
 
 
