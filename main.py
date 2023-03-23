@@ -51,7 +51,9 @@ class the_player:
         self.bullet_cooldown = FPS / self.bullets_per_sec
         self.hit_tick        = 0
         self.duration        = 2
-        self.icon            = pygame.image.load("resources/pumpkin.png").convert()
+        self.immunity_tick   = 0
+        self.immunity_time   = 20
+        self.icon            = pygame.image.load("resources/moon_50x50.png").convert()
         self.rect            = pygame.Rect(
                                            self.x,
                                            self.y,
@@ -111,6 +113,11 @@ class the_player:
                 the_shot_bullet = bullet(self, direction)
                 if not the_shot_bullet.from_enemy:
                     friendly_bullets.append(the_shot_bullet)
+    def hit(self, damage):
+        if total_num_of_ticks > (self.immunity_tick + self.immunity_time):
+            self.current_health -= damage
+            self.hit_tick        = total_num_of_ticks
+            self.immunity_tick   = total_num_of_ticks
     def paint(self):
         height_above_player = 0.5
         health_fraction     = round(self.current_health / self.max_health, 3)
@@ -246,7 +253,7 @@ class enemy_2:
         self.bullet_cooldown = FPS / self.bullets_per_sec
         self.hit_tick        = 0
         self.duration        = 2
-        self.icon            = pygame.image.load("resources/moon_50x50.png").convert()
+        self.icon            = pygame.image.load("resources/pumpkin.png").convert()
         self.rect            = pygame.Rect(
                                            self.x,
                                            self.y,
@@ -376,6 +383,31 @@ class bullet:
                                          self.speed * np.sin(self.direction) / dt,
                                          )
 
+all_of_the_power_ups = []
+POWER_UP_TYPES       = ["shield", "bullet_speed", "player_speed", "laser_beam", "triple_shot"]
+class power_up:
+    def __init__(self, power_up_type: str, initial_x, initial_y):
+        self.x               = initial_x
+        self.y               = initial_y
+        self.pos             = [self.x, self.y]
+        self.width           = 40
+        self.height          = 40
+        self.hit_tick        = 0
+        self.icon            = eval("pygame.image.load(\"resources/"+ power_up_type +"_icon.png\").convert()")
+        self.rect            = pygame.Rect(
+                                           self.x,
+                                           self.y,
+                                           self.width, 
+                                           self.height)
+        all_of_the_power_ups.append(self)
+    def paint(self):
+        screen.blit(self.icon, self.pos)
+    def draw_rect(self):
+        pygame.draw.rect(screen, WHITE, self.rect)
+
+
+
+
 
 
 
@@ -387,6 +419,8 @@ bubbles_3 = enemy_1(200, 400)
 bubbles_4 = enemy_1(  0, 600)
 bubbles_5 = enemy_2(200, 200)
 bubbles_6 = enemy_2(200, 600)
+
+power_up_1 = power_up("bullet_speed", 40, 40)
 
 # append all bad guys to the bad_guys list
 i = 1
@@ -420,13 +454,15 @@ while the_game_is_running:
         for entity in bad_guys:
             if pygame.Rect.colliderect(entity.rect, this_bullet):
                 entity.current_health -= this_bullet.bullet_damage
-                friendly_bullets.remove(this_bullet)
                 entity.hit_tick = total_num_of_ticks
+                try:
+                    friendly_bullets.remove(this_bullet)
+                except:
+                    print("bullet not removed")
     for this_bullet in enemy_bullets:
         if pygame.Rect.colliderect(player.rect, this_bullet):
-            player.current_health -= this_bullet.bullet_damage
+            player.hit(this_bullet.bullet_damage)
             enemy_bullets.remove(this_bullet)
-            player.hit_tick = total_num_of_ticks
  
     for bad_guy in bad_guys:
         if bad_guy.current_health <= 0:
@@ -434,7 +470,7 @@ while the_game_is_running:
     
     for bad_guy in bad_guys:
         if pygame.Rect.colliderect(bad_guy.rect, player.rect):
-            player.current_health -= bad_guy.impact_damage
+            player.hit(bad_guy.impact_damage)
 
 
 
@@ -449,6 +485,8 @@ while the_game_is_running:
     player.paint()
     for bad_guy in bad_guys:
         bad_guy.paint()
+    for power_up in all_of_the_power_ups:
+        power_up.paint()
     for this_bullet in friendly_bullets:
         this_bullet.move()
         pygame.draw.rect(screen, RED,   this_bullet)
