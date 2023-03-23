@@ -245,9 +245,15 @@ bad_guys  = []
 player    = the_player()
 bubbles_1 = enemy_1(300, 300)
 bubbles_2 = enemy_1(600, 600)
+bubbles_3 = enemy_1(600,   0)
+bubbles_4 = enemy_1(  0, 600)
+bubbles_5 = enemy_1(200, 200)
 
 bad_guys.append(bubbles_1)
 bad_guys.append(bubbles_2)
+bad_guys.append(bubbles_3)
+bad_guys.append(bubbles_4)
+bad_guys.append(bubbles_5)
 
 
 print("\n"*5)
