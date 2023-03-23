@@ -169,17 +169,10 @@ class enemy_1:
 
         rPr_vec = [r1_vec[0] - r2_vec[0], r1_vec[1] - r2_vec[1]]
         rPr     = np.sqrt( rPr_vec[0]**2 + rPr_vec[1]**2 )
-        # rPr_hat = [rPr_vec[0] / rPr, rPr_vec[1] / rPr]
-
-        # gamma = np.arccos( np.dot(r1_hat,  r2_hat) ) * (180 / np.pi)
-        # alpha = np.arccos( np.dot(r1_hat, rPr_hat) ) * (180 / np.pi)
-        # beta  = np.arccos( np.dot(r2_hat, rPr_hat) ) * (180 / np.pi)
-
-        # theta = np.arctan( (self.y - aim_y) / (self.x - aim_x) ) * (180 / np.pi)
-        # theta = np.arctan( (aim_y - self.y) / (aim_x - self.x) ) * (180 / np.pi)
-        theta = np.arccos( np.dot( [-1, 0], rPr_vec ) / rPr )
+        theta = -np.arccos( np.dot( [-1, 0], rPr_vec ) / rPr )
+        if rPr_vec[1] < 0:
+            theta *= (-1)
         if (total_num_of_ticks > (self.bullet_shot_at + self.bullet_cooldown)):
-
             self.bullet_shot_at = total_num_of_ticks
             the_shot_bullet = bullet(self, theta)
             enemy_bullets.append(the_shot_bullet)
@@ -235,7 +228,7 @@ class bullet:
             if self.direction == "SE":
                 self.rect = pygame.Rect.move(self.rect,  (1 / np.sqrt(2)) * self.speed * (1 + self.x_bullet_variability) / dt,   (1 / np.sqrt(2)) * self.speed * (1 + self.y_bullet_variability) / dt)
         
-        elif type(self.direction) == float:
+        else:
             self.rect = pygame.Rect.move(self.rect, 
                                          self.speed * np.cos(self.direction) / dt,
                                          self.speed * np.sin(self.direction) / dt,
