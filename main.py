@@ -115,7 +115,7 @@ class enemy_1:
         self.pos             = [self.x, self.y]
         self.width           = 50
         self.height          = 50
-        self.speed           = 150
+        self.speed           = 100
         self.health          = 50
         self.bullets_per_sec = 2
         self.bullet_cooldown = FPS / self.bullets_per_sec
@@ -176,7 +176,12 @@ class enemy_1:
             self.bullet_shot_at = total_num_of_ticks
             the_shot_bullet = bullet(self, theta)
             enemy_bullets.append(the_shot_bullet)
-    #       
+    #
+    def kill(self):
+        if self.health <= 0:
+            print("brb ima kms...")
+            del self
+    #
     def paint(self):
         return screen.blit(self.icon, [self.x, self.y])
     #
@@ -192,6 +197,7 @@ class bullet:
         self.x                    = entity.x +  entity.width / 2 - self.bullet_size / 2
         self.y                    = entity.y + entity.height / 2 - self.bullet_size / 2
         self.direction            = direction
+        self.bullet_damage        = 25
         self.bullets_per_second   = 5
         self.bullet_cooldown      = FPS // self.bullets_per_second
         # self.bullet_shot_tick   = entity.bullet_shot_at            # tracks when bullet is shot in terms of ticks
@@ -235,9 +241,13 @@ class bullet:
                                          )
 
 
+bad_guys  = []
+player    = the_player()
+bubbles_1 = enemy_1(300, 300)
+bubbles_2 = enemy_1(600, 600)
 
-player  = the_player()
-bubbles = enemy_1(300, 300)
+bad_guys.append(bubbles_1)
+bad_guys.append(bubbles_2)
 
 
 print("\n"*5)
@@ -253,18 +263,35 @@ while the_game_is_running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             the_game_is_running = False
-    
+
+
+    # test collisions first, then do stuff with surviving entities
+    for this_bullet in friendly_bullets:
+        for entity in bad_guys:
+            if pygame.Rect.colliderect(entity.rect, this_bullet):
+                entity.health -= this_bullet.bullet_damage
+                friendly_bullets.remove(this_bullet)
+    for this_bullet in enemy_bullets:
+        if pygame.Rect.colliderect(player.rect, this_bullet):
+            player.health -= this_bullet.bullet_damage
+            enemy_bullets.remove(this_bullet)
+ 
+    for bad_guy in bad_guys:
+        if bad_guy.health <= 0:
+            bad_guys.remove(bad_guy)
 
     player.move()
     player.shoot()
-    # bubbles.move(player)
-    bubbles.shoot(player)
+    for bad_guy in bad_guys:
+        bad_guy.shoot(player)
+        bad_guy.move(player)
 
 
     screen.fill(BLACK)    
 
     player.paint()
-    bubbles.paint()
+    for bad_guy in bad_guys:
+        bad_guy.paint()
     for this_bullet in friendly_bullets:
         this_bullet.move()
         pygame.draw.rect(screen, RED,   this_bullet)
@@ -277,4 +304,8 @@ while the_game_is_running:
     pygame.time.delay(1000//FPS)
     total_num_of_ticks += 1
 
-    
+    print(player.health)
+    if player.health <= 0:
+        the_game_is_running = False
+
+
