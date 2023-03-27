@@ -43,7 +43,7 @@ class the_player:
         self.height            = 50
         self.speed             = 300
         self.color             = RED
-        self.max_health        = 1_000
+        self.max_health        = 100
         self.current_health    = self.max_health
         self.bullet_damage     = 25
         self.bullets_per_sec   = 5
@@ -52,7 +52,7 @@ class the_player:
         self.hit_tick          = 0
         self.duration          = 2
         self.immunity_tick     = 0
-        self.immunity_time     = 20
+        self.immunity_time     = 1/2 * FPS
 
         self.power_up_duration = 5 * FPS
         self.shields           = -self.power_up_duration
@@ -60,6 +60,7 @@ class the_player:
         self.player_speed_tick = -self.power_up_duration
         self.laser_beam_tick   = -self.power_up_duration
         self.triple_shot_tick  = -self.power_up_duration
+        self.triple_spread     = 15 * np.pi/180
 
         self.icon              = pygame.image.load("resources/moon_50x50.png").convert()
         self.rect              = pygame.Rect(
@@ -155,9 +156,9 @@ class the_player:
                     the_shot_bullet = bullet(self, direction)
                     friendly_bullets.append(the_shot_bullet)
                 else:
-                    the_shot_bullet_1 = bullet(self, direction - 45 * np.pi/180)
+                    the_shot_bullet_1 = bullet(self, direction - self.triple_spread)
                     the_shot_bullet_2 = bullet(self, direction)
-                    the_shot_bullet_3 = bullet(self, direction + 45 * np.pi/180)
+                    the_shot_bullet_3 = bullet(self, direction + self.triple_spread)
 
                     friendly_bullets.append(the_shot_bullet_1)
                     friendly_bullets.append(the_shot_bullet_2)
@@ -173,7 +174,7 @@ class the_player:
                     self.shields -= 1
                     pygame.draw.rect(screen, BLUE, self.rect)
         else:
-            if self.shields == 0:
+            if self.shields != 0:
                 self.current_health -= damage
                 self.hit_tick        = total_num_of_ticks
                 self.immunity_tick   = total_num_of_ticks
@@ -279,7 +280,6 @@ class enemy_1:
         theta   = np.arccos( np.dot( [-1, 0], rPr_vec ) / rPr )
         if rPr_vec[1] > 0:
             theta *= (-1)
-        print("theta = ", round(theta, 2) )
         if (total_num_of_ticks > (self.bullet_shot_at + self.bullet_cooldown)):
             self.bullet_shot_at = total_num_of_ticks
             the_shot_bullet = bullet(self, theta)
@@ -536,16 +536,16 @@ test_player = the_player()
 bad_guys       = []
 bubbles_1      = enemy_1(100, 200, False)
 test_bubbles_1 = enemy_1(100, 200, True)
-# bubbles_2      = enemy_1( 50,  50, False)
-# test_bubbles_2 = enemy_1( 50,  50, True)
-# bubbles_6      = enemy_1(100,   0, False)
-# test_bubbles_6 = enemy_1(100,   0, True)
-# bubbles_3      = enemy_2(200, 200, False)
-# test_bubbles_3 = enemy_2(200, 200, True)
-# bubbles_4      = enemy_2(300, 350, False)
-# test_bubbles_4 = enemy_2(300, 350, True)
-# bubbles_5      = enemy_2(400, 300, False)
-# test_bubbles_5 = enemy_2(400, 300, True)
+bubbles_2      = enemy_1( 50,  50, False)
+test_bubbles_2 = enemy_1( 50,  50, True)
+bubbles_6      = enemy_1(100,   0, False)
+test_bubbles_6 = enemy_1(100,   0, True)
+bubbles_3      = enemy_2(200, 200, False)
+test_bubbles_3 = enemy_2(200, 200, True)
+bubbles_4      = enemy_2(300, 350, False)
+test_bubbles_4 = enemy_2(300, 350, True)
+bubbles_5      = enemy_2(400, 300, False)
+test_bubbles_5 = enemy_2(400, 300, True)
 
 power_up_1 = power_up("bullet_speed", 40, 40)
 power_up_2 = power_up("player_speed", 450, 450)
@@ -625,16 +625,14 @@ while the_game_is_running:
         for i in range(len(bad_guys)):
             bad_guy = bad_guys[i]
             if bad_guy.is_test_entity:
-                # bad_guy.move(player)
-                1
+                bad_guy.move(player)
             else:
                 if this_wall.inside(bad_guys[i + 1]):
                     # print("enemy inside wall")
                     bad_guys[i+1].x = bad_guy.x
                     bad_guys[i+1].y = bad_guy.y
                 else:
-                    # bad_guy.move(player)
-                    1
+                    bad_guy.move(player)
         
 
     # removing health
