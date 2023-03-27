@@ -43,7 +43,7 @@ class the_player:
         self.height            = 50
         self.speed             = 300
         self.color             = RED
-        self.max_health        = 100
+        self.max_health        = 1_000
         self.current_health    = self.max_health
         self.bullet_damage     = 25
         self.bullets_per_sec   = 5
@@ -54,11 +54,12 @@ class the_player:
         self.immunity_tick     = 0
         self.immunity_time     = 20
 
-        self.shields           = 0
-        self.bullet_speed_tick = 0
-        self.player_speed_tick = 0
-        self.laser_beam_tick   = 0
-        self.triple_shot_tick  = 0
+        self.power_up_duration = 5 * FPS
+        self.shields           = -self.power_up_duration
+        self.bullet_speed_tick = -self.power_up_duration
+        self.player_speed_tick = -self.power_up_duration
+        self.laser_beam_tick   = -self.power_up_duration
+        self.triple_shot_tick  = -self.power_up_duration
 
         self.icon              = pygame.image.load("resources/moon_50x50.png").convert()
         self.rect              = pygame.Rect(
@@ -118,33 +119,49 @@ class the_player:
             # bullet stuff
             if (total_num_of_ticks > (self.bullet_shot_at + self.bullet_cooldown)):
                 if (pressed_keys[pygame.K_UP] and pressed_keys[pygame.K_RIGHT]) and not bullet_shotQ:
-                    direction    = "NE"
+                    # direction    = "NE"
+                    direction    = -45 * np.pi / 180
                     bullet_shotQ = True
                 if (pressed_keys[pygame.K_UP] and pressed_keys[pygame.K_LEFT]) and not bullet_shotQ:
-                    direction    = "NW"
+                    # direction    = "NW"
+                    direction    = -135 * np.pi / 180
                     bullet_shotQ = True
                 if (pressed_keys[pygame.K_DOWN] and pressed_keys[pygame.K_RIGHT]) and not bullet_shotQ:
-                    direction    = "SE"
+                    # direction    = "SE"
+                    direction    = -315 * np.pi / 180
                     bullet_shotQ = True
                 if (pressed_keys[pygame.K_DOWN] and pressed_keys[pygame.K_LEFT]) and not bullet_shotQ:
-                    direction    = "SW"
+                    # direction    = "SW"
+                    direction    = -225 * np.pi / 180
                     bullet_shotQ = True
                 if pressed_keys[pygame.K_UP] and not bullet_shotQ:
-                    direction    = "N"
+                    # direction    = "N"
+                    direction    = - 90 * np.pi / 180
                     bullet_shotQ = True
                 if pressed_keys[pygame.K_DOWN] and not bullet_shotQ:
-                    direction    = "S"
+                    # direction    = "S"
+                    direction    = - 270 * np.pi / 180
                     bullet_shotQ = True
                 if pressed_keys[pygame.K_RIGHT] and not bullet_shotQ:
-                    direction    = "E"
+                    # direction    = "E"
+                    direction    = 0 * np.pi / 180
                     bullet_shotQ = True
                 if pressed_keys[pygame.K_LEFT] and not bullet_shotQ:
-                    direction    = "W"
+                    # direction    = "W"
+                    direction    = 180 * np.pi / 180
                     bullet_shotQ = True
                 self.bullet_shot_at = total_num_of_ticks
-                the_shot_bullet = bullet(self, direction)
-                if not the_shot_bullet.from_enemy:
+                if total_num_of_ticks > (self.power_up_duration + self.triple_shot_tick):
+                    the_shot_bullet = bullet(self, direction)
                     friendly_bullets.append(the_shot_bullet)
+                else:
+                    the_shot_bullet_1 = bullet(self, direction - 45 * np.pi/180)
+                    the_shot_bullet_2 = bullet(self, direction)
+                    the_shot_bullet_3 = bullet(self, direction + 45 * np.pi/180)
+
+                    friendly_bullets.append(the_shot_bullet_1)
+                    friendly_bullets.append(the_shot_bullet_2)
+                    friendly_bullets.append(the_shot_bullet_3)
     def hit(self, damage, impact: bool):
         if impact:
             if total_num_of_ticks > (self.immunity_tick + self.immunity_time):
@@ -259,9 +276,10 @@ class enemy_1:
 
         rPr_vec = [r1_vec[0] - r2_vec[0], r1_vec[1] - r2_vec[1]]
         rPr     = np.sqrt( rPr_vec[0]**2 + rPr_vec[1]**2 )
-        theta = -np.arccos( np.dot( [-1, 0], rPr_vec ) / rPr )
-        if rPr_vec[1] < 0:
+        theta   = np.arccos( np.dot( [-1, 0], rPr_vec ) / rPr )
+        if rPr_vec[1] > 0:
             theta *= (-1)
+        print("theta = ", round(theta, 2) )
         if (total_num_of_ticks > (self.bullet_shot_at + self.bullet_cooldown)):
             self.bullet_shot_at = total_num_of_ticks
             the_shot_bullet = bullet(self, theta)
@@ -402,6 +420,7 @@ class bullet:
         self.speed                = 600
         self.range                = 300        
         self.bullet_size          = 15
+        self.color                = entity.color
         self.x                    = entity.x +  entity.width / 2 - self.bullet_size / 2
         self.y                    = entity.y + entity.height / 2 - self.bullet_size / 2
         self.direction            = direction
@@ -422,7 +441,6 @@ class bullet:
             self.from_enemy       = False
         else:
             self.from_enemy       = True
-        self.color                = entity.color
     def move(self):
         if type(self.direction) == str:
             if self.direction == "N":
@@ -477,7 +495,7 @@ class power_up:
         if self.power_up_type == "laser_beam":
             1
         if self.power_up_type == "triple_shot":
-            1
+            player.triple_shot_tick = total_num_of_ticks
     def paint(self):
         screen.blit(self.icon, self.pos)
     def draw_rect(self):
@@ -518,20 +536,21 @@ test_player = the_player()
 bad_guys       = []
 bubbles_1      = enemy_1(100, 200, False)
 test_bubbles_1 = enemy_1(100, 200, True)
-bubbles_2      = enemy_1( 50,  50, False)
-test_bubbles_2 = enemy_1( 50,  50, True)
-bubbles_6      = enemy_1(100,   0, False)
-test_bubbles_6 = enemy_1(100,   0, True)
-bubbles_3      = enemy_2(200, 200, False)
-test_bubbles_3 = enemy_2(200, 200, True)
-bubbles_4      = enemy_2(300, 350, False)
-test_bubbles_4 = enemy_2(300, 350, True)
-bubbles_5      = enemy_2(400, 300, False)
-test_bubbles_5 = enemy_2(400, 300, True)
+# bubbles_2      = enemy_1( 50,  50, False)
+# test_bubbles_2 = enemy_1( 50,  50, True)
+# bubbles_6      = enemy_1(100,   0, False)
+# test_bubbles_6 = enemy_1(100,   0, True)
+# bubbles_3      = enemy_2(200, 200, False)
+# test_bubbles_3 = enemy_2(200, 200, True)
+# bubbles_4      = enemy_2(300, 350, False)
+# test_bubbles_4 = enemy_2(300, 350, True)
+# bubbles_5      = enemy_2(400, 300, False)
+# test_bubbles_5 = enemy_2(400, 300, True)
 
 power_up_1 = power_up("bullet_speed", 40, 40)
 power_up_2 = power_up("player_speed", 450, 450)
 power_up_3 = power_up("shield", 200, 500)
+power_up_4 = power_up("triple_shot", 700, 650)
 
 wall_1 = wall(600, 500, 50, 200, True, False)
 
@@ -606,14 +625,16 @@ while the_game_is_running:
         for i in range(len(bad_guys)):
             bad_guy = bad_guys[i]
             if bad_guy.is_test_entity:
-                bad_guy.move(player)
+                # bad_guy.move(player)
+                1
             else:
                 if this_wall.inside(bad_guys[i + 1]):
                     # print("enemy inside wall")
                     bad_guys[i+1].x = bad_guy.x
                     bad_guys[i+1].y = bad_guy.y
                 else:
-                    bad_guy.move(player)
+                    # bad_guy.move(player)
+                    1
         
 
     # removing health
@@ -638,7 +659,7 @@ while the_game_is_running:
         if not bad_guy.is_test_entity:
             bad_guy.shoot(player)
 
-    screen.fill(BLACK)    
+    screen.fill(BLACK)
 
     player.paint()
     for bad_guy in bad_guys:
