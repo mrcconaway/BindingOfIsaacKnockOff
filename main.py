@@ -32,10 +32,7 @@ def damage_flash(entity):
                               entity.width,
                               entity.height
                               )
-    if isinstance(entity, the_player):
-        pygame.draw.rect(screen,   RED, damage_rect)
-    else:
-        pygame.draw.rect(screen, GREEN, damage_rect)
+    pygame.draw.rect(screen, entity.color, damage_rect)
 
 class the_player:
     def __init__(self):
@@ -45,6 +42,7 @@ class the_player:
         self.width             = 50
         self.height            = 50
         self.speed             = 300
+        self.color             = RED
         self.max_health        = 100
         self.current_health    = self.max_health
         self.bullet_damage     = 25
@@ -198,6 +196,7 @@ class enemy_1:
         self.width           = 50
         self.height          = 50
         self.speed           = 250
+        self.color           = GREEN
         self.max_health      = 50
         self.current_health  = self.max_health
         self.impact_damage   = 20
@@ -304,6 +303,7 @@ class enemy_2:
         self.width           = 50
         self.height          = 50
         self.speed           = 50
+        self.color           = BLUE
         self.max_health      = 200
         self.current_health  = self.max_health
         self.impact_damage   = 50
@@ -422,6 +422,7 @@ class bullet:
             self.from_enemy       = False
         else:
             self.from_enemy       = True
+        self.color                = entity.color
     def move(self):
         if type(self.direction) == str:
             if self.direction == "N":
@@ -649,10 +650,10 @@ while the_game_is_running:
         this_power_up.paint()
     for this_bullet in friendly_bullets:
         this_bullet.move()
-        pygame.draw.rect(screen, RED,   this_bullet)
+        pygame.draw.rect(screen, this_bullet.color, this_bullet)
     for this_bullet in enemy_bullets:
         this_bullet.move()
-        pygame.draw.rect(screen, GREEN, this_bullet)
+        pygame.draw.rect(screen, this_bullet.color, this_bullet)
     for this_wall in all_of_the_walls:
         this_wall.draw_rect()
 
