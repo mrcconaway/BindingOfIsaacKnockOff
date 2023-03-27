@@ -147,8 +147,17 @@ class the_player:
                 the_shot_bullet = bullet(self, direction)
                 if not the_shot_bullet.from_enemy:
                     friendly_bullets.append(the_shot_bullet)
-    def hit(self, damage):
-        if total_num_of_ticks > (self.immunity_tick + self.immunity_time):
+    def hit(self, damage, impact: bool):
+        if impact:
+            if total_num_of_ticks > (self.immunity_tick + self.immunity_time):
+                if self.shields == 0:
+                    self.current_health -= damage
+                    self.hit_tick        = total_num_of_ticks
+                    self.immunity_tick   = total_num_of_ticks
+                else:
+                    self.shields -= 1
+                    pygame.draw.rect(screen, BLUE, self.rect)
+        else:
             if self.shields == 0:
                 self.current_health -= damage
                 self.hit_tick        = total_num_of_ticks
@@ -188,12 +197,12 @@ class enemy_1:
         self.pos             = [self.x, self.y]
         self.width           = 50
         self.height          = 50
-        self.speed           = 150
+        self.speed           = 250
         self.max_health      = 50
         self.current_health  = self.max_health
         self.impact_damage   = 20
-        self.bullet_damage   = 20
-        self.bullets_per_sec = 2
+        self.bullet_damage   = 10
+        self.bullets_per_sec = 4
         self.bullet_cooldown = FPS / self.bullets_per_sec
         self.hit_tick        = 0
         self.duration        = 2
@@ -206,23 +215,28 @@ class enemy_1:
                                            self.height)
         self.bullet_shot_at = 0
     def move(self, entity):
-        flag = 0
+        flag   = 0
+        move_x = 0
+        move_y = 0
         if self.x < (entity.x - entity.height / self.height):
-            self.x += self.speed // dt
+            move_x = self.speed // dt
             flag += 1
         if self.x > (entity.x - entity.height / self.height):
-            self.x -= self.speed // dt
+            move_x = - self.speed // dt
             flag += 1
         if self.y < (entity.y -  entity.width /  self.width):
-            self.y += self.speed // dt
+            move_y = self.speed // dt
             flag += 1
         if self.y > (entity.y -  entity.width /  self.width):
-            self.y -= self.speed // dt
+            move_y = - self.speed // dt
             flag += 1
         
-        # if flag == 2:
-        #     self.x /= np.sqrt(2)
-        #     self.y /= np.sqrt(2)
+        if flag == 2:
+            move_x /= np.sqrt(2)
+            move_y /= np.sqrt(2)
+        
+        self.x += move_x
+        self.y += move_y
         
         self.rect.x = self.x
         self.rect.y = self.y
@@ -293,8 +307,8 @@ class enemy_2:
         self.max_health      = 200
         self.current_health  = self.max_health
         self.impact_damage   = 50
-        self.bullet_damage   = 35
-        self.bullets_per_sec = 0.2
+        self.bullet_damage   = 45
+        self.bullets_per_sec = 0.5
         self.bullet_cooldown = FPS / self.bullets_per_sec
         self.hit_tick        = 0
         self.duration        = 2
@@ -501,10 +515,18 @@ player      = the_player()
 test_player = the_player()
 
 bad_guys       = []
-bubbles_1      = enemy_1(300, 500, False)
-test_bubbles_1 = enemy_1(300, 500, True)
-bubbles_2      = enemy_2(200, 200, False)
-test_bubbles_2 = enemy_2(200, 200, True)
+bubbles_1      = enemy_1(100, 200, False)
+test_bubbles_1 = enemy_1(100, 200, True)
+bubbles_2      = enemy_1( 50,  50, False)
+test_bubbles_2 = enemy_1( 50,  50, True)
+bubbles_6      = enemy_1(100,   0, False)
+test_bubbles_6 = enemy_1(100,   0, True)
+bubbles_3      = enemy_2(200, 200, False)
+test_bubbles_3 = enemy_2(200, 200, True)
+bubbles_4      = enemy_2(300, 350, False)
+test_bubbles_4 = enemy_2(300, 350, True)
+bubbles_5      = enemy_2(400, 300, False)
+test_bubbles_5 = enemy_2(400, 300, True)
 
 power_up_1 = power_up("bullet_speed", 40, 40)
 power_up_2 = power_up("player_speed", 450, 450)
@@ -557,7 +579,7 @@ while the_game_is_running:
                     None
     for this_bullet in enemy_bullets:
         if pygame.Rect.colliderect(player.rect, this_bullet):
-            player.hit(this_bullet.bullet_damage)
+            player.hit(this_bullet.bullet_damage, False)
             enemy_bullets.remove(this_bullet)
  
     # wall collisions
@@ -586,7 +608,7 @@ while the_game_is_running:
                 bad_guy.move(player)
             else:
                 if this_wall.inside(bad_guys[i + 1]):
-                    print("enemy inside wall")
+                    # print("enemy inside wall")
                     bad_guys[i+1].x = bad_guy.x
                     bad_guys[i+1].y = bad_guy.y
                 else:
@@ -602,7 +624,7 @@ while the_game_is_running:
     for bad_guy in bad_guys:
         if not bad_guy.is_test_entity:
             if pygame.Rect.colliderect(bad_guy.rect, player.rect):
-                player.hit(bad_guy.impact_damage)
+                player.hit(bad_guy.impact_damage, True)
     
     # player colliding with power ups
     for this_power_up in all_of_the_power_ups:
