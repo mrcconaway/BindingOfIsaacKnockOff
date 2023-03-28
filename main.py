@@ -49,18 +49,19 @@ class the_player:
         self.bullets_per_sec   = 5
         self.bullet_cooldown   = FPS / self.bullets_per_sec
         self.bullet_shot_at    = 0
+        self.bullet_spread     = 0.1
         self.hit_tick          = 0
         self.duration          = 2
         self.immunity_tick     = 0
         self.immunity_time     = 1/2 * FPS
 
-        self.power_up_duration = 5 * FPS
+        self.power_up_duration = 10 * FPS
         self.shields           = -self.power_up_duration
         self.bullet_speed_tick = -self.power_up_duration
         self.player_speed_tick = -self.power_up_duration
         self.laser_beam_tick   = -self.power_up_duration
         self.triple_shot_tick  = -self.power_up_duration
-        self.triple_spread     = 15 * np.pi/180
+        self.triple_spread     = 10 * np.pi/180
 
         self.icon              = pygame.image.load("resources/moon_50x50.png").convert()
         self.rect              = pygame.Rect(
@@ -151,6 +152,7 @@ class the_player:
                     # direction    = "W"
                     direction    = 180 * np.pi / 180
                     bullet_shotQ = True
+                direction += self.bullet_spread * (2*random.random() - 1)
                 self.bullet_shot_at = total_num_of_ticks
                 if total_num_of_ticks > (self.power_up_duration + self.triple_shot_tick):
                     the_shot_bullet = bullet(self, direction)
@@ -204,7 +206,7 @@ class the_player:
         if ((self.hit_tick + self.duration) >= total_num_of_ticks) and (total_num_of_ticks > self.duration):
             damage_flash(self)
     def draw_rect(self):
-        return pygame.draw.rect(screen, WHITE, self.rect)
+        return pygame.draw.rect(screen, CYAN, self.rect)
 
 class enemy_1:
     def __init__(self, initial_x, initial_y, test_entity: bool):
@@ -489,11 +491,11 @@ class power_up:
             player.shields += 1
         if self.power_up_type == "bullet_speed":
             player.bullet_speed_tick = total_num_of_ticks
-            player.bullets_per_sec  += 1 
+            player.bullets_per_sec  += 2
         if self.power_up_type == "player_speed":
             player.speed += 100
         if self.power_up_type == "laser_beam":
-            1
+            print("laser beams currently not working")
         if self.power_up_type == "triple_shot":
             player.triple_shot_tick = total_num_of_ticks
     def paint(self):
@@ -547,8 +549,8 @@ test_bubbles_4 = enemy_2(300, 350, True)
 bubbles_5      = enemy_2(400, 300, False)
 test_bubbles_5 = enemy_2(400, 300, True)
 
-power_up_1 = power_up("bullet_speed", 40, 40)
-power_up_2 = power_up("player_speed", 450, 450)
+power_up_1 = power_up("bullet_speed", 540, 740)
+power_up_2 = power_up("player_speed", 250, 450)
 power_up_3 = power_up("shield", 200, 500)
 power_up_4 = power_up("triple_shot", 700, 650)
 
@@ -613,14 +615,47 @@ while the_game_is_running:
                 friendly_bullets.remove(this_bullet)
         
         # player stuff
+        stuck   = False  # keeps track of if the test_player is currently stuck
+        stuck_x = False  # flag to see if x was causing problems
+        stuck_y = False  # same flag but for y
         test_player.move()
         if this_wall.inside(test_player):
-            print("player going to hit wall")
-            test_player.x = player.x
-            test_player.y = player.y
-        else:
-            player.move()
+            stuck = True
+        if stuck:
+            # test_player.x = player.x
+            # test_player.y = player.y
+
+            # test x movement:
+            test_player.move()
+            if this_wall.inside(test_player):
+                stuck_x = True
+
+                if stuck and (player.x > test_player.x):
+                    test_player.x = player.x
+                    while (player.x >= test_player.x - player.speed / FPS) and (player.x <= test_player.x + player.speed / FPS):
+                        test_player.x += 1
+                        if this_wall.inside(test_player):
+                            stuck = False
+                            print("+fixed")
+                
+                if stuck and (player.x < test_player.x):
+                    test_player.x = player.x
+                    while (player.x >= test_player.x - player.speed / FPS) and (player.x <= test_player.x + player.speed / FPS):
+                        test_player.x -= 1
+                        if this_wall.inside(test_player):
+                            stuck = False
+                            print("-fixed")
+            if stuck:
+                print("stuck not fixed . . .")
+                print("")
         
+        player.move()
+        if stuck_x:
+            player.x = test_player.x
+        elif stuck_y:
+            player.y = test_player.y
+        test_player.x = player.x
+        test_player.y = player.y
         
         for i in range(len(bad_guys)):
             bad_guy = bad_guys[i]
@@ -633,8 +668,7 @@ while the_game_is_running:
                     bad_guys[i+1].y = bad_guy.y
                 else:
                     bad_guy.move(player)
-        
-
+    
     # removing health
     for bad_guy in bad_guys:
         if bad_guy.current_health <= 0:
@@ -652,14 +686,19 @@ while the_game_is_running:
             this_power_up.collect_power_up()
             all_of_the_power_ups.remove(this_power_up)
 
+
+    # shooting from player and enemies
     player.shoot()
     for bad_guy in bad_guys:
         if not bad_guy.is_test_entity:
             bad_guy.shoot(player)
 
-    screen.fill(BLACK)
 
+
+    # drawing images (and some movement for loop efficiency)
+    screen.fill(BLACK)
     player.paint()
+    test_player.draw_rect()
     for bad_guy in bad_guys:
         if not bad_guy.is_test_entity:
             bad_guy.paint()
