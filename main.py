@@ -282,7 +282,7 @@ class enemy_1:
         theta   = np.arccos( np.dot( [-1, 0], rPr_vec ) / rPr )
         if rPr_vec[1] > 0:
             theta *= (-1)
-        if (total_num_of_ticks > (self.bullet_shot_at + self.bullet_cooldown)):
+        if (total_num_of_ticks > (self.bullet_shot_at + self.bullet_cooldown)) and (total_num_of_ticks > self.bullet_cooldown):
             self.bullet_shot_at = total_num_of_ticks
             the_shot_bullet = bullet(self, theta)
             enemy_bullets.append(the_shot_bullet)
@@ -384,7 +384,7 @@ class enemy_2:
         theta = -np.arccos( np.dot( [-1, 0], rPr_vec ) / rPr )
         if rPr_vec[1] < 0:
             theta *= (-1)
-        if (total_num_of_ticks > (self.bullet_shot_at + self.bullet_cooldown)):
+        if (total_num_of_ticks > (self.bullet_shot_at + self.bullet_cooldown)) and (total_num_of_ticks > self.bullet_cooldown):
             self.bullet_shot_at = total_num_of_ticks
             the_shot_bullet = bullet(self, theta)
             enemy_bullets.append(the_shot_bullet)
@@ -536,25 +536,25 @@ player      = the_player()
 test_player = the_player()
 
 bad_guys       = []
-bubbles_1      = enemy_1(100, 200, False)
-test_bubbles_1 = enemy_1(100, 200, True)
-bubbles_2      = enemy_1( 50,  50, False)
-test_bubbles_2 = enemy_1( 50,  50, True)
-bubbles_6      = enemy_1(100,   0, False)
-test_bubbles_6 = enemy_1(100,   0, True)
-bubbles_3      = enemy_2(200, 200, False)
-test_bubbles_3 = enemy_2(200, 200, True)
-bubbles_4      = enemy_2(300, 350, False)
-test_bubbles_4 = enemy_2(300, 350, True)
-bubbles_5      = enemy_2(400, 300, False)
-test_bubbles_5 = enemy_2(400, 300, True)
+# bubbles_1      = enemy_1(100, 200, False)
+# test_bubbles_1 = enemy_1(100, 200, True)
+# bubbles_2      = enemy_1( 50,  50, False)
+# test_bubbles_2 = enemy_1( 50,  50, True)
+# bubbles_6      = enemy_1(100,   0, False)
+# test_bubbles_6 = enemy_1(100,   0, True)
+# bubbles_3      = enemy_2(200, 200, False)
+# test_bubbles_3 = enemy_2(200, 200, True)
+# bubbles_4      = enemy_2(300, 350, False)
+# test_bubbles_4 = enemy_2(300, 350, True)
+# bubbles_5      = enemy_2(400, 300, False)
+# test_bubbles_5 = enemy_2(400, 300, True)
 
 power_up_1 = power_up("bullet_speed", 540, 740)
 power_up_2 = power_up("player_speed", 250, 450)
 power_up_3 = power_up("shield", 200, 500)
 power_up_4 = power_up("triple_shot", 700, 650)
 
-wall_1 = wall(600, 500, 50, 200, True, False)
+wall_1 = wall(600, 500, 100, 200, True, False)
 
 # append all bad guys to the bad_guys list
 i = 1
@@ -630,32 +630,69 @@ while the_game_is_running:
             if this_wall.inside(test_player):
                 stuck_x = True
 
-                if stuck and (player.x > test_player.x):
+                if stuck and (player.x >= test_player.x):
                     test_player.x = player.x
-                    while (player.x >= test_player.x - player.speed / FPS) and (player.x <= test_player.x + player.speed / FPS):
+                    while stuck and (player.x >= test_player.x - player.speed / FPS) and (player.x <= test_player.x + player.speed / FPS):
+                        print("x += 1")
                         test_player.x += 1
                         if this_wall.inside(test_player):
                             stuck = False
-                            print("+fixed")
+                            # print("+fixed")
                 
-                if stuck and (player.x < test_player.x):
+                if stuck and (player.x <= test_player.x):
                     test_player.x = player.x
-                    while (player.x >= test_player.x - player.speed / FPS) and (player.x <= test_player.x + player.speed / FPS):
+                    while stuck and (player.x >= test_player.x - player.speed / FPS) and (player.x <= test_player.x + player.speed / FPS):
+                        print("x -= 1")
                         test_player.x -= 1
                         if this_wall.inside(test_player):
                             stuck = False
-                            print("-fixed")
-            if stuck:
-                print("stuck not fixed . . .")
-                print("")
+                            # print("-fixed")
+            
+
+            # # test y movement:
+            # test_player.x = player.x
+            # test_player.y = player.y
+            # test_player.move()
+            # if stuck_x:
+            #     test_player.x = player.x
+            # if this_wall.inside(test_player):
+            #     stuck = True
+            # if this_wall.inside(test_player):
+            #     stuck   = True
+            #     stuck_y = True
+
+            #     if stuck and (player.y > test_player.y):
+            #         test_player.y = player.y
+            #         while (player.y >= test_player.y - player.speed / FPS) and (player.y <= test_player.y + player.speed / FPS):
+            #             test_player.y += 1
+            #             if this_wall.inside(test_player):
+            #                 stuck = False
+            #                 # print("-fixed")
+                
+            #     if stuck and (player.y < test_player.y):
+            #         test_player.y = player.y
+            #         while (player.y >= test_player.y - player.speed / FPS) and (player.y <= test_player.y + player.speed / FPS):
+            #             test_player.y -= 1
+            #             if this_wall.inside(test_player):
+            #                 stuck = False
+            #                 # print("+fixed")
+        
+        if stuck:
+            print("stuck not fixed . . .")
+            print("")
         
         player.move()
         if stuck_x:
+            print("fixed x coords")
             player.x = test_player.x
         elif stuck_y:
+            print('fixed y coords')
             player.y = test_player.y
         test_player.x = player.x
         test_player.y = player.y
+
+
+
         
         for i in range(len(bad_guys)):
             bad_guy = bad_guys[i]
