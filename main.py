@@ -604,108 +604,123 @@ while the_game_is_running:
             player.hit(this_bullet.bullet_damage, False)
             enemy_bullets.remove(this_bullet)
  
-    # wall collisions
-    for this_wall in all_of_the_walls:
-        # bullet stuff
-        for this_bullet in enemy_bullets:
-            if this_wall.inside(this_bullet):
-                enemy_bullets.remove(this_bullet)
-        for this_bullet in friendly_bullets:
-            if this_wall.inside(this_bullet):
-                friendly_bullets.remove(this_bullet)
-        
-        # player stuff
-        stuck   = False  # keeps track of if the test_player is currently stuck
-        stuck_x = False  # flag to see if x was causing problems
-        stuck_y = False  # same flag but for y
-        test_player.move()
-        if this_wall.inside(test_player):
-            stuck = True
+
+
+    ###   ###   ###   wall collisions   ###   ###   ###
+
+    test_player.move()
+
+    kick      = 1
+    stuck     = False
+    was_stuck = False
+
+    stuck_x = False
+    stuck_y = False
+    # you only enter this if statement if the first arguement Rect is inside ANY of the second arguement's Rects
+    if pygame.Rect.collidelist(test_player.rect, all_of_the_walls) != -1:
+        print("player inside of wall!")
+        was_stuck = True
+
+        stuck = True
+        pretest_pos = [test_player.x, test_player.y]
+
+        print("testing x -= ")
         if stuck:
-            # test_player.x = player.x
-            # test_player.y = player.y
-
-            # test x movement:
-            test_player.move()
-            if this_wall.inside(test_player):
-                stuck_x = True
-
-                if stuck and (player.x >= test_player.x):
-                    test_player.x = player.x
-                    while stuck and (player.x >= test_player.x - player.speed / FPS) and (player.x <= test_player.x + player.speed / FPS):
-                        print("x += 1")
-                        test_player.x += 1
-                        if this_wall.inside(test_player):
-                            stuck = False
-                            # print("+fixed")
-                
-                if stuck and (player.x <= test_player.x):
-                    test_player.x = player.x
-                    while stuck and (player.x >= test_player.x - player.speed / FPS) and (player.x <= test_player.x + player.speed / FPS):
-                        print("x -= 1")
-                        test_player.x -= 1
-                        if this_wall.inside(test_player):
-                            stuck = False
-                            # print("-fixed")
-            
-
-            # # test y movement:
-            # test_player.x = player.x
-            # test_player.y = player.y
-            # test_player.move()
-            # if stuck_x:
-            #     test_player.x = player.x
-            # if this_wall.inside(test_player):
-            #     stuck = True
-            # if this_wall.inside(test_player):
-            #     stuck   = True
-            #     stuck_y = True
-
-            #     if stuck and (player.y > test_player.y):
-            #         test_player.y = player.y
-            #         while (player.y >= test_player.y - player.speed / FPS) and (player.y <= test_player.y + player.speed / FPS):
-            #             test_player.y += 1
-            #             if this_wall.inside(test_player):
-            #                 stuck = False
-            #                 # print("-fixed")
-                
-            #     if stuck and (player.y < test_player.y):
-            #         test_player.y = player.y
-            #         while (player.y >= test_player.y - player.speed / FPS) and (player.y <= test_player.y + player.speed / FPS):
-            #             test_player.y -= 1
-            #             if this_wall.inside(test_player):
-            #                 stuck = False
-            #                 # print("+fixed")
-        
-        if stuck:
-            print("stuck not fixed . . .")
-            print("")
-        
-        player.move()
-        if stuck_x:
-            print("fixed x coords")
-            player.x = test_player.x
-        elif stuck_y:
-            print('fixed y coords')
-            player.y = test_player.y
-        test_player.x = player.x
-        test_player.y = player.y
-
-
-
-        
-        for i in range(len(bad_guys)):
-            bad_guy = bad_guys[i]
-            if bad_guy.is_test_entity:
-                bad_guy.move(player)
+            test_player.rect.x -= (kick * test_player.speed / dt)
+            if pygame.Rect.collidelist(test_player.rect, all_of_the_walls) != -1:
+                test_player.rect.x = pretest_pos[0]
             else:
-                if this_wall.inside(bad_guys[i + 1]):
-                    # print("enemy inside wall")
-                    bad_guys[i+1].x = bad_guy.x
-                    bad_guys[i+1].y = bad_guy.y
-                else:
-                    bad_guy.move(player)
+                stuck = False
+                stuck_x = True
+        
+        print("testing x += ")
+        if stuck:
+            test_player.rect.x += (kick * test_player.speed / dt)
+            if pygame.Rect.collidelist(test_player.rect, all_of_the_walls) != -1:
+                test_player.rect.x = pretest_pos[0]
+            else:
+                stuck = False
+                stuck_x = True
+        
+        print("testing y -= ")
+        if stuck:
+            test_player.rect.y -= (kick * test_player.speed / dt)
+            if pygame.Rect.collidelist(test_player.rect, all_of_the_walls) != -1:
+                test_player.rect.y = pretest_pos[1]
+            else:
+                stuck = False
+                stuck_y = True
+        
+        print("testing y += ")
+        if stuck:
+            test_player.rect.y += (kick * test_player.speed / dt)
+            if pygame.Rect.collidelist(test_player.rect, all_of_the_walls) != -1:
+                test_player.rect.y = pretest_pos[1]
+            else:
+                stuck = False
+                stuck_y = True
     
+    
+    if (not stuck_x) and (not stuck_y):
+        player.x      = test_player.x
+        player.rect.x = test_player.rect.x
+
+        player.y      = test_player.y
+        player.rect.y = test_player.rect.y
+    elif (    stuck_x) and (not stuck_y):
+        test_player.x = player.x
+        test_player.rect.x = player.rect.x
+
+        player.y      = test_player.y
+        player.rect.y = test_player.rect.y
+    elif (not stuck_x) and (    stuck_y):
+        player.x      = test_player.x
+        player.rect.x = test_player.rect.x
+
+        test_player.y = player.y
+        test_player.rect.y = player.rect.y
+    else:
+        # test_player.x = player.x
+        # test_player.rect.x = player.rect.x
+
+        # test_player.y = player.y
+        # test_player.rect.y = player.rect.y
+
+
+        player.x      = test_player.x
+        player.rect.x = test_player.rect.x
+
+        player.y      = test_player.y
+        player.rect.y = test_player.rect.y
+        
+
+
+
+    # if stuck and was_stuck:
+    #     print("still stuck")
+    #     test_player.x = player.x
+    #     test_player.rect.x = player.rect.x
+
+    #     # test_player.y = player.y
+    #     # test_player.rect.y = player.rect.y
+    # elif was_stuck:
+    #     print("kicked out of wall")
+    #     player.x = test_player.x
+    #     player.rect.x = test_player.rect.x
+
+    #     # player.y = test_player.y
+    #     # player.rect.y = test_player.rect.y
+    # else:
+    #     player.x = test_player.x
+    #     player.rect.x = test_player.rect.x
+
+    #     player.y = test_player.y
+    #     player.rect.y = test_player.rect.y
+    
+    ###   ###   ###   ###   ###   ###   ###   ###   ###
+
+
+
     # removing health
     for bad_guy in bad_guys:
         if bad_guy.current_health <= 0:
